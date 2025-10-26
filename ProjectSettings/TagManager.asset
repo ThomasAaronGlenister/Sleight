@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - LargeRoom
+  - LongRoom
+  - DefaultRoom
+  - TallRoom
+  - Enemy
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Ground
+  - Water
+  - UI
+  - Wall
+  - ChamberTransitionTop
+  - BackGround
+  - ChamberTransitionBottom
+  - ChamberTransitionRight
+  - ChamberTransitionLeft
+  - Player
+  - Attacks
+  - Enemy
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: AttackBack
+    uniqueID: 109209469
+    locked: 0
+  - name: Player
+    uniqueID: 3040848057
+    locked: 0
+  - name: DeckCards
+    uniqueID: 722848077
+    locked: 0
+  - name: CycleCard2
+    uniqueID: 2459071441
+    locked: 0
+  - name: CycleCard
+    uniqueID: 945951873
+    locked: 0
+  - name: FrontCard
+    uniqueID: 1241112071
+    locked: 0
+  - name: CardOverlay
+    uniqueID: 2950878823
+    locked: 0
+  - name: UI
+    uniqueID: 1426713309
+    locked: 0
+  - name: FakeCard1
+    uniqueID: 2198988069
+    locked: 0
+  - name: FakeCard2
+    uniqueID: 1877109535
+    locked: 0
+  - name: FakeCard3
+    uniqueID: 3331807287
+    locked: 0
+  - name: FakeCard4
+    uniqueID: 1704121127
+    locked: 0
+  - name: FakeCard5
+    uniqueID: 1111260741
+    locked: 0
+  - name: UI2
+    uniqueID: 356859301
+    locked: 0
