@@ -76,7 +76,7 @@ public class LevelManager : MonoBehaviour
         CurrentLevelChambers.Clear();
         List<GameObject> lacLevelPool = new();
 
-        Debug.Log("Generate Level: " + pnLevel);
+        //Debug.Log("Generate Level: " + pnLevel);
 
         //TODO Add different level pools
         if (pnLevel == 0)
@@ -97,7 +97,7 @@ public class LevelManager : MonoBehaviour
             {
                 int lbRandomRoom = UnityEngine.Random.Range(1, (lacLevelPool.Count));
 
-                Debug.Log("Add Chamber: " + lbRandomRoom);
+                //Debug.Log("Add Chamber: " + lbRandomRoom);
 
                 //Add the random room and remove from the pool
                 CurrentLevelChambers.Add(lacLevelPool[lbRandomRoom]);
@@ -108,7 +108,7 @@ public class LevelManager : MonoBehaviour
             foreach (GameObject lcLevelChamber in CurrentLevelChambers)
             {
                 lcLevelChamber.GetComponent<Chamber>().InitializeChamber();
-                Debug.Log("Initialize Chamber");
+                //Debug.Log("Initialize Chamber");
             }
 
             ChamberExits leEntrance = ChamberExits.eeNone;
@@ -128,6 +128,8 @@ public class LevelManager : MonoBehaviour
             for (int lnNumChambers = 0; lnNumChambers < mnNumChambersInLevel; lnNumChambers++)
             {
                 lcChamber = CurrentLevelChambers[lnNumChambers].GetComponent<Chamber>();
+
+                lcChamber.PopulateWithEnemies();
 
                 //for each potential exit
                 for (int lnNumExits = 0; lnNumExits < lcChamber.GetNumPotentialRooms(); lnNumExits++)
@@ -160,8 +162,8 @@ public class LevelManager : MonoBehaviour
                             lcChamber.ConnectExits(leChamberExit, leNewChamberEntrance);
                             lcAttachedChamber.ConnectExits(leNewChamberEntrance, leChamberExit);
 
-                            Debug.Log("Chamber: " + CurrentLevelChambers[lnNumChambers].ToString() + "Create Exit " + leChamberExit + 
-                                " -----> Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].ToString() + "Create Entrance " + leNewChamberEntrance);
+                            //Debug.Log("Chamber: " + CurrentLevelChambers[lnNumChambers].ToString() + "Create Exit " + leChamberExit + 
+                             //   " -----> Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].ToString() + "Create Entrance " + leNewChamberEntrance);
 
                             lnNextChamberToAdd++;
                         }
@@ -243,7 +245,7 @@ public class LevelManager : MonoBehaviour
             {
                 mcLevelGrid.AddChamberToGrid((int)lcNewChamberPoint.x, (int)lcNewChamberPoint.y, pcNewChamber);
 
-                Debug.Log("Add Grid Point    x: " + lcNewChamberPoint.x + "   y: " + lcNewChamberPoint.y);
+                //Debug.Log("Add Grid Point    x: " + lcNewChamberPoint.x + "   y: " + lcNewChamberPoint.y);
             }
         }
 
@@ -290,7 +292,7 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        Debug.Log("Loaded " + macLevel1Chambers.Count + " Chamber(s) for level " + (pnLevel + 1));
+        //Debug.Log("Loaded " + macLevel1Chambers.Count + " Chamber(s) for level " + (pnLevel + 1));
     }
 
     /*

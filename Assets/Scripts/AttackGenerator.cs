@@ -56,11 +56,11 @@ public class AttackGenerator : MonoBehaviour
         mcPlayerAttackAttributes = new PlayerAttackAttributes();
         mcAttackOrigin = mcAttacker.transform;
 
-        if(mcAttacker.name == "Player")
+        if(mcAttacker.tag == "Player")
         {
             mcPlayerMovement = mcAttacker.GetComponent<PlayerMovement>();
         }
-        else if(mcAttacker.name == "Enemy")
+        else if(mcAttacker.tag == "Enemy")
         {
             mcEnemyAttackAttributes = new EnemyAttackAttributes();
         }
@@ -175,7 +175,7 @@ public class AttackGenerator : MonoBehaviour
         lcAttackComponent.BeginAttack();
     }
 
-    public void GenerateAttack(EnemyAttacks peEnemyAttack, AttackDirection peAttackDirection)
+    public void GenerateAttack(EnemyAttacks peEnemyAttack, int pnAttackDamage, AttackDirection peAttackDirection)
     {
         Vector3 lcAttackOrigin = mcAttackOrigin.position;
         AttackAttributes lcAttackAttributes = mcEnemyAttackAttributes.GetBaseAttackAttributes(peEnemyAttack);
@@ -209,6 +209,7 @@ public class AttackGenerator : MonoBehaviour
         if (lcAttackComponent != null)
         {
             lcAttackAttributes.SetDirection(peAttackDirection);
+            lcAttackAttributes.SetAttackDamage(pnAttackDamage);
             lcAttackComponent.SetAttributes(lcAttackAttributes);
             lcAttackComponent.SetAttacker(mcAttacker.GetComponent<EnemyAI>());
 
@@ -315,7 +316,8 @@ public class AttackGenerator : MonoBehaviour
                 pcAttackAttributes.GetHasAnimationFlip(),
                 pcAttackAttributes.GetPlayerAttackAnimation(),
                 mbSingleAnimationAttackTest,
-                mcAttackAnimationStringTest);
+                mcAttackAnimationStringTest,
+                pcAttackAttributes.GetAttackCapsuleColliderDirection());
 
         return lcAttackAtt;
     }

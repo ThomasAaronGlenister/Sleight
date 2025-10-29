@@ -52,6 +52,9 @@ public class AttackAttributes
     //Set of forces that may be applied to the attacker during the attack
     AttackForces msAttackForces;
 
+    //Direction this attacks hit box capsule is set to
+    private CapsuleDirection2D meAttackCapsuleColliderDirection;
+
     //Direction this attack is set to go in
     AttackDirection meAttackDirection;
 
@@ -80,7 +83,8 @@ public class AttackAttributes
         bool pbHasAnimationFlip,
         int pnAttackerAnimation,
         bool pbSingleAnimationLifetime,
-        string pcAttackAnimationString)
+        string pcAttackAnimationString,
+        CapsuleDirection2D peAttackCapsuleColliderDirection)
     {
         mfHorizontalOffset = pfHorzOffset;
         mfVerticalOffset = pfVertOffset;
@@ -95,6 +99,7 @@ public class AttackAttributes
         mnAttackerAnimation = pnAttackerAnimation;
         mbSingleAnimationAttack = pbSingleAnimationLifetime;
         mcAttackAnimationString = pcAttackAnimationString;
+        meAttackCapsuleColliderDirection = peAttackCapsuleColliderDirection;
     }
 
     //Horizontal Offset Getter
@@ -191,6 +196,12 @@ public class AttackAttributes
     public int GetAttackDamage()
     {
         return mnAttackDamage;
+    }
+
+    //Capsule collider direction getter
+    public CapsuleDirection2D GetAttackCapsuleColliderDirection()
+    {
+        return meAttackCapsuleColliderDirection;
     }
 
 

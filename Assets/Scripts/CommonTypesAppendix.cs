@@ -143,15 +143,33 @@ namespace Deck
         eeSpreadAttack = 9
     }
 
+    public enum EnemyID
+    {
+        eeNone = 0,
+        eeChaseFreak = 1
+    }
+
+    public enum EnemyState
+    {
+        eeEnemyIdle = 0,
+        eeEnemyAttack = 1,
+        eeEnemyMove = 2,
+        eeEnemyJump = 3,
+        eeEnemyWindup = 4,
+        eeEnemyStagger= 5,
+        eeEnemyKnockback = 6
+    }
+
     public enum EnemyAttacks
     {
-        eeChaseFreakAttack_1 = 0,
-        eeChaseFreakAttack_2 = 1,
-        eeChaseFreakAttack_3 = 2,
-        eeChaseFreakAttack_4 = 3,
-        eeChaseFreakAttack_5 = 4,
-        eeChaseFreakAttack_6 = 5,
-        eeChaseFreakAttack_7 = 6,
+        eeNone = 0,
+        eeChaseFreakAttack_1 = 1,
+        eeChaseFreakAttack_2 = 2,
+        eeChaseFreakAttack_3 = 3,
+        eeChaseFreakAttack_4 = 4,
+        eeChaseFreakAttack_5 = 5,
+        eeChaseFreakAttack_6 = 6,
+        eeChaseFreakAttack_7 = 7,
 
     }
 }

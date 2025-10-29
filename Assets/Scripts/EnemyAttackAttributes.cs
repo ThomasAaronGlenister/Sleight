@@ -8,7 +8,7 @@ public class EnemyAttackAttributes
     //Base attack creation attributes
     List<AttackAttributes> macAttacksDataSet = new();
 
-    // Start is called before the first frame update
+    //Constructor
     public EnemyAttackAttributes()
     {
         GenerateBaseAttackAttributeSet();
@@ -19,22 +19,22 @@ public class EnemyAttackAttributes
         //Horizontal Offset, Vertical Offset, Size Multiplier, Is Disjointed, Travel Distance, Travel Time, Attack Animation String
 
         //Chase Freak Slash Attack 
-        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.5f, 0.5f, 1f, true, false, 5, 0.5f, false, (int)PlayerAttackAnimation.eeBasic, false, "HeartAttack"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
         //Axe Attack
-        macAttacksDataSet.Add(new AttackAttributes(0f, 0.65f, 0.2f, 0.1f, 1.5f, false, false, 0, 0f, false, 0, true, "SwordAttackRedux"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
         //Arrow Attack
-        macAttacksDataSet.Add(new AttackAttributes(0, -0.07f, 0.5f, 0.5f, 1.5f, true, false, 8, 0.5f, false, 0, false, "SwordAttackRedux"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
         //Heart Attack
-        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.5f, 0.5f, 1f, true, false, 5, 0.5f, false, 0, false, "SwordAttackRedux"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
         //Spade Attack
-        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.5f, 0.5f, 1f, true, false, 5, 0.5f, false, 0, false, "SwordAttackRedux"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
         //Clover Attack
-        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.5f, 0.5f, 1f, true, false, 5, 0.5f, false, 0, false, "SwordAttackRedux"));
+        macAttacksDataSet.Add(new AttackAttributes(0, 0, 0.4f, 0.5f, 2.5f, false, false, 0, 0, false, 0, true, "ChaseFreakAttack_1", CapsuleDirection2D.Vertical));
 
     }
 

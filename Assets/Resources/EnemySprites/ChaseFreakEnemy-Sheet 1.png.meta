@@ -340,6 +340,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: ChaseFreakEnemy-Sheet 1_11
+      rect:
+        serializedVersion: 2
+        x: 1408
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 188569734559ef54ab486975c7ea5841
+      internalID: 454874447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChaseFreakEnemy-Sheet 1_12
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f77223c787caab4aaac0d0fc9a3315b
+      internalID: -1801662260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChaseFreakEnemy-Sheet 1_13
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 900a411389193d14c8a4c872d459f507
+      internalID: 1544246284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -354,6 +417,9 @@ TextureImporter:
       ChaseFreakEnemy-Sheet 1_0: -441263355
       ChaseFreakEnemy-Sheet 1_1: -504915481
       ChaseFreakEnemy-Sheet 1_10: -1309868121
+      ChaseFreakEnemy-Sheet 1_11: 454874447
+      ChaseFreakEnemy-Sheet 1_12: -1801662260
+      ChaseFreakEnemy-Sheet 1_13: 1544246284
       ChaseFreakEnemy-Sheet 1_2: 1644186404
       ChaseFreakEnemy-Sheet 1_3: 1544375967
       ChaseFreakEnemy-Sheet 1_4: 1085601502

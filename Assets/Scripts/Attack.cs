@@ -52,6 +52,8 @@ public class Attack : MonoBehaviour
     //Start Flag for attack
     private bool mbBeginAttack = false;
 
+    private bool mbHitBoxActive = false;
+
     //Attack visual Effects
     private GameObject mcChildHitbox;
 
@@ -97,6 +99,7 @@ public class Attack : MonoBehaviour
         mbEnemyAttacker = true;
     }
 
+    //Catches collider overlaps for the attack
     private void OnTriggerEnter2D(Collider2D lcCollision)
     {
         if (mbEnemyAttacker)
@@ -129,8 +132,12 @@ public class Attack : MonoBehaviour
                 //TODO: Add KnockBack
                 mcEnemyCollided.Damage(mcAttackAttributes.GetAttackDamage(), 2f, meAttackDirection);
             }
+            else if(mbEnemyAttacker)
+            {
+                mcPlayerCollided.Damage(mcAttackAttributes.GetAttackDamage(), 2f, meAttackDirection);
+            }
 
-            if(mcPlayerAttacker != null && meAttackDirection == AttackDirection.eeDownwards)
+            if (mcPlayerAttacker != null && meAttackDirection == AttackDirection.eeDownwards)
             {
                 mcPlayerAttacker.ApplyAttackMovement();
             }
@@ -163,6 +170,7 @@ public class Attack : MonoBehaviour
         }
 
         mbBeginAttack = true;
+
         smokeFX.Play();
     }
 
@@ -174,57 +182,57 @@ public class Attack : MonoBehaviour
         //Set Direction
         meAttackDirection = mcAttackAttributes.GetDirection();
 
-        //Find attack end position
-        switch (meAttackDirection)
-        {
-            case AttackDirection.eeLeftward:
-                if(pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
-                }
-                else if (pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
-                }
-                mcAttackEndPosition = new Vector3(transform.position.x - mcAttackAttributes.GetTravelDistance(), transform.position.y, 0);
-                break;
-            case AttackDirection.eeRightward:
-                if (pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
-                }
-                else if(pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
-                }
+            //Find attack end position
+            switch (meAttackDirection)
+            {
+                case AttackDirection.eeLeftward:
+                    if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
+                    }
+                    else if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
+                    }
+                    mcAttackEndPosition = new Vector3(transform.position.x - mcAttackAttributes.GetTravelDistance(), transform.position.y, 0);
+                    break;
+                case AttackDirection.eeRightward:
+                    if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
+                    }
+                    else if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
+                    }
                     mcAttackEndPosition = new Vector3(transform.position.x + mcAttackAttributes.GetTravelDistance(), transform.position.y, 0);
-                break;
-            case AttackDirection.eeUpwards:
-                if (pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavyUpAttack;
-                }
-                else
-                {
-                    meAttackAnimationType = AttackAnimationType.eeBasicUpAttack;
-                }
-                  
-                mcAttackEndPosition = new Vector3(transform.position.x, transform.position.y + mcAttackAttributes.GetTravelDistance(), 0);
-                break;
-            case AttackDirection.eeDownwards:
-                if (pcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavyDownAttack;
-                }
-                else
-                {
-                    meAttackAnimationType = AttackAnimationType.eeBasicDownAttack;
-                }
+                    break;
+                case AttackDirection.eeUpwards:
+                    if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeHeavyUpAttack;
+                    }
+                    else
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeBasicUpAttack;
+                    }
 
-                mcAttackEndPosition = new Vector3(transform.position.x, transform.position.y - mcAttackAttributes.GetTravelDistance(), 0);
-                break;
+                    mcAttackEndPosition = new Vector3(transform.position.x, transform.position.y + mcAttackAttributes.GetTravelDistance(), 0);
+                    break;
+                case AttackDirection.eeDownwards:
+                    if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeHeavyDownAttack;
+                    }
+                    else
+                    {
+                        meAttackAnimationType = AttackAnimationType.eeBasicDownAttack;
+                    }
 
-        }
+                    mcAttackEndPosition = new Vector3(transform.position.x, transform.position.y - mcAttackAttributes.GetTravelDistance(), 0);
+                    break;
+
+            }
     }
 
     /**
@@ -247,7 +255,12 @@ public class Attack : MonoBehaviour
         //If Attack has been started
         if(mbBeginAttack)
         {
-            mcChildHitbox.SetActive(true);
+            if (mcChildHitbox && !mbHitBoxActive)
+            {
+                mcChildHitbox.GetComponent<CapsuleCollider2D>().direction = mcAttackAttributes.GetAttackCapsuleColliderDirection();
+                mcChildHitbox.SetActive(true);
+                mbHitBoxActive = true;
+            }
 
             //If Attack ends at end of animation
             if (mcAttackAttributes.GetSingleAnimationLifetime())

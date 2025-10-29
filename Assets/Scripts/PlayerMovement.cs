@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
 {
     private int mnPlayerMaxHealth = 40;
     public int mnPlayerHealth = 40;
-    public bool HealthTest = false;
+    public bool UpdateDisplayHealth = false;
 
     //Flag indicating if health is added or removed
     public bool HealthChange = false;
@@ -157,7 +157,7 @@ public class PlayerMovement : MonoBehaviour
             StartCoroutine(ChangeChamberCoroutine(lcNextChamberAttributes.Item1, lcNextChamberAttributes.Item2));
         }
 
-        if (HealthTest)
+        if (UpdateDisplayHealth)
         {
             UpdateDisplayedHealth(HealthChange);
         }
@@ -204,6 +204,19 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
+    //METHOD:: Receives Damage input to the enemy
+    public void Damage(int pnDamageAmount, float pnKnockBack, AttackDirection peAttackDirection)
+    {
+        mnPlayerHealth -= pnDamageAmount;
+
+        UpdateDisplayHealth = true;
+
+        if (mnPlayerHealth <= 0)
+        {
+            //TODO GAME OVER
+        }
+    }
+
     //Updates UI to Displayed Health
     //pbHealthDirection = false : Remove Health
     //pbHealthDirection = true : Add Health
@@ -226,7 +239,7 @@ public class PlayerMovement : MonoBehaviour
             (pbHealthDirection && stateInfo.normalizedTime < lfNormalizedHealthTime))
         {
             mcPlayerHealthBarAnimator.SetFloat("HealthBarSpeed", 0);
-            HealthTest = false;
+            UpdateDisplayHealth = false;
         }
     }
 

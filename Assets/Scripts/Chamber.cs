@@ -44,6 +44,13 @@ public class Chamber : MonoBehaviour
 
     List<GameObject> macMapTiles = new List<GameObject>();
 
+    //EnemyPrefab
+    public GameObject mcEnemyPrefab;
+
+    //Enemy Attributes sets
+    EnemyAttributesLoader mcEnemyAttributesLoader;
+
+
     /*
      * METHOD: Initialize Chamber attributes.
      */
@@ -107,6 +114,15 @@ public class Chamber : MonoBehaviour
 
         //Add list of wall tiles that may be converted to exits
         GenerateExitTileLists();
+
+        mcEnemyAttributesLoader = new EnemyAttributesLoader();
+    }
+
+    public void PopulateWithEnemies()
+    {
+        GameObject lcEnemy = Instantiate(mcEnemyPrefab, Vector3.zero, Quaternion.identity);
+        lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(0));
+        lcEnemy.transform.SetParent(this.transform);
     }
 
     /**
