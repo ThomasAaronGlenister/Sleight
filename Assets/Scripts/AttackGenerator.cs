@@ -25,6 +25,8 @@ public class AttackGenerator : MonoBehaviour
     //List of Attacks currently out
     public List<Attack> macActiveAttacks = new List<Attack>();
 
+    public Vector2[] macDirectionVectors = new Vector2[4];
+
     /****************************************
      * TEST CODE: TODO REMOVE
      */
@@ -32,7 +34,11 @@ public class AttackGenerator : MonoBehaviour
     public bool Test = false;
 
     //Forces attack to particular suit
-    public CardSuit TestSuit = CardSuit.eeAxe;
+    public CardSuit TestSuit = CardSuit.eeCardSuitEnd;
+    public CardSuit TestSuit2 = CardSuit.eeCardSuitEnd;
+    public CardSuit TestSuit3 = CardSuit.eeCardSuitEnd;
+
+    private List<Card> macTestCards = new List<Card>();
 
     // Attack Test Parameters
     public float mfHorizontalOffsetTest = 0;
@@ -47,6 +53,9 @@ public class AttackGenerator : MonoBehaviour
     public float mfTravelTimeTest = 0f;
     public string mcAttackAnimationStringTest;
     public bool mbSingleAnimationAttackTest = false;
+
+    public int mnNumInstancesTest = 0;
+    public float mfAdjustedAngleTest = 0;
 
     /****************************************/
 
@@ -64,6 +73,11 @@ public class AttackGenerator : MonoBehaviour
         {
             mcEnemyAttackAttributes = new EnemyAttackAttributes();
         }
+
+        macDirectionVectors[(int)AttackDirection.eeRightward] = Vector2.right;
+        macDirectionVectors[(int)AttackDirection.eeLeftward] = Vector2.left;
+        macDirectionVectors[(int)AttackDirection.eeUpwards] = Vector2.up;
+        macDirectionVectors[(int)AttackDirection.eeDownwards] = Vector2.down;
     }
 
     public int CalculateAttackDamage(List<Card> pacAttackCards)
@@ -78,101 +92,154 @@ public class AttackGenerator : MonoBehaviour
         return lnAttackDamage;
     }
 
-    public void GenerateAttack(List<Card> pacAttackCards, AttackDirection peAttackDirection, bool AnimationFlip, bool pbIsFacingRight)
+    public bool GenerateAttack(List<Card> pacAttackCards, AttackDirection peAttackDirection, bool AnimationFlip, bool pbIsFacingRight)
     {
+        bool lbGenerationSuccessful = true;
+
         Vector3 lcAttackOrigin = mcAttackOrigin.position;
-        CardSuit leSuit = pacAttackCards[0].GetCardSuit();
 
+        AttackAttributes lcAttackAttributes = mcPlayerAttackAttributes.GetBaseAttackAttributes(pacAttackCards);
+
+        /********************************************************/
+
+        //TODO: REMOVE TEST
         if(Test)
         {
-            leSuit = TestSuit;
-        }
+            macTestCards.Clear();
 
-        AttackAttributes lcAttackAttributes = mcPlayerAttackAttributes.GetBaseAttackAttributes(leSuit);
+            if(TestSuit != CardSuit.eeCardSuitEnd)
+            {
+                macTestCards.Add(new Card("", TestSuit, CardAttackType.eePhysicalAttack, SuitEffect.eeCrit, CardRank.eeJack, RankEffect.eeNone, null));
+            }
 
-        if(Test)
-        {
+            if (TestSuit2 != CardSuit.eeCardSuitEnd)
+            {
+                macTestCards.Add(new Card("", TestSuit2, CardAttackType.eePhysicalAttack, SuitEffect.eeCrit, CardRank.eeJack, RankEffect.eeNone, null));
+            }
+
+            if (TestSuit3 != CardSuit.eeCardSuitEnd)
+            {
+                macTestCards.Add(new Card("", TestSuit3, CardAttackType.eePhysicalAttack, SuitEffect.eeCrit, CardRank.eeJack, RankEffect.eeNone, null));
+            }
+
+            lcAttackAttributes = mcPlayerAttackAttributes.GetBaseAttackAttributes(macTestCards);
+
             lcAttackAttributes = AttackAttributeTest(lcAttackAttributes);
         }
+        /********************************************************/
 
-        GameObject lcAttack = Instantiate(mcAttackPrefab, lcAttackOrigin, mcAttackOrigin.rotation);
-
-        Attack lcAttackComponent = lcAttack.GetComponent<Attack>();
-
-        if(lcAttackComponent != null)
+        //Attack is produced from the ground or wall
+        if (lcAttackAttributes.GetGroundOrigination())
         {
-            //Set Damage and direction to Attack Attributes
-            lcAttackAttributes.SetAttackDamage(CalculateAttackDamage(pacAttackCards));
-            lcAttackAttributes.SetDirection(peAttackDirection);
+            Vector2 lcRayDirection = (peAttackDirection == AttackDirection.eeUpwards) ? Vector2.up : Vector2.down;
 
-            //Assign Attack components
-            lcAttackComponent.SetAttacker(mcPlayerMovement);
-            lcAttackComponent.SetAttributes(lcAttackAttributes);
-            lcAttackComponent.SetFlip(AnimationFlip);
+            RaycastHit2D lcOriginhit = Physics2D.Raycast(new Vector2(lcAttackOrigin.x, lcAttackOrigin.y), lcRayDirection, 50f, 15);
 
-            //Lock attack to player if it is not disjointed
-            if (!lcAttackAttributes.GetDisjointed())
+            if(lcOriginhit)
             {
-                lcAttack.transform.SetParent(this.transform);
+                lcAttackOrigin = lcOriginhit.point;
             }
         }
-        else
-        {
-            Debug.Log("Attack component is NULL");
-        }
 
-        lcAttack.transform.localScale *= lcAttackAttributes.GetAttackBaseSizeMultiplier();
+        float lfStartAngle = (lcAttackAttributes.GetNumInstances() != 1) ? (-1 * (lcAttackAttributes.GetAdjustedAngle() / 2)) : lcAttackAttributes.GetAdjustedAngle();
 
-        //Offsets derived from attack direction
-        if (peAttackDirection == AttackDirection.eeLeftward)
-        {
-            lcAttackOrigin.x -= lcAttackAttributes.GetSideAttackOffset();
-            lcAttackOrigin.y += lcAttackAttributes.GetVerticalOffset();
+        Vector3 lcStartOrigin = lcAttackOrigin;
 
-            Vector3 ls = lcAttack.transform.localScale;
-            ls.x *= -1f;
-            lcAttack.transform.localScale = ls;
-        }
-        else if (peAttackDirection == AttackDirection.eeRightward)
+        for (int lnDuplicates = 0; lnDuplicates < lcAttackAttributes.GetNumInstances(); lnDuplicates++)
         {
-            lcAttackOrigin.x += lcAttackAttributes.GetSideAttackOffset();
-            lcAttackOrigin.y += lcAttackAttributes.GetVerticalOffset();
-        }
-        else if (peAttackDirection == AttackDirection.eeUpwards)
-        {
-            lcAttackOrigin.y += lcAttackAttributes.GetUpDownAttackOffset();
-            lcAttackOrigin.x -= lcAttackAttributes.GetHorizontalOffset();
+            lcAttackOrigin = lcStartOrigin;
 
-            if (pbIsFacingRight)
+            GameObject lcAttack = Instantiate(mcAttackPrefab, lcAttackOrigin, mcAttackOrigin.rotation);
+
+            Attack lcAttackComponent = lcAttack.GetComponent<Attack>();
+
+            if (lcAttackComponent != null)
             {
+                //Set Damage and direction to Attack Attributes
+                lcAttackAttributes.SetAttackDamage(CalculateAttackDamage(pacAttackCards));
+                lcAttackAttributes.SetDirection(peAttackDirection);
+
+                //Assign Attack components
+                lcAttackComponent.SetAttacker(mcPlayerMovement);
+                lcAttackComponent.SetAttributes(lcAttackAttributes, lfStartAngle);
+                lcAttackComponent.SetFlip(AnimationFlip);
+
+                if (lcAttackAttributes.GetHasSubAttack())
+                {
+                    lcAttackComponent.SetSubAttackAttributes(mcPlayerAttackAttributes.GetSubAttackAttributes(pacAttackCards));
+                }
+
+                //Lock attack to player if it is not disjointed
+                if (!lcAttackAttributes.GetDisjointed())
+                {
+                    lcAttack.transform.SetParent(this.transform);
+                }
+            }
+            else
+            {
+                Debug.Log("Attack component is NULL");
+            }
+
+            lcAttack.transform.localScale *= lcAttackAttributes.GetAttackBaseSizeMultiplier();
+
+            //Offsets derived from attack direction
+            if (peAttackDirection == AttackDirection.eeLeftward)
+            {
+                lcAttackOrigin.x -= lcAttackAttributes.GetSideAttackOffset();
+                lcAttackOrigin.y += lcAttackAttributes.GetVerticalOffset();
+
                 Vector3 ls = lcAttack.transform.localScale;
-                ls.y *= -1f;
+                ls.x *= -1f;
                 lcAttack.transform.localScale = ls;
             }
-
-            lcAttack.transform.rotation = Quaternion.Euler(0,0,90);
-        }
-        else if(peAttackDirection == AttackDirection.eeDownwards)
-        {
-            lcAttackOrigin.y -= lcAttackAttributes.GetUpDownAttackOffset();
-            lcAttackOrigin.x += lcAttackAttributes.GetHorizontalOffset();
-
-            if (!pbIsFacingRight)
+            else if (peAttackDirection == AttackDirection.eeRightward)
             {
-                Vector3 ls = lcAttack.transform.localScale;
-                ls.y *= -1f;
-                lcAttack.transform.localScale = ls;
+                lcAttackOrigin.x += lcAttackAttributes.GetSideAttackOffset();
+                lcAttackOrigin.y += lcAttackAttributes.GetVerticalOffset();
             }
-            lcAttack.transform.rotation = Quaternion.Euler(0, 0, -90);
+            else if (peAttackDirection == AttackDirection.eeUpwards)
+            {
+                lcAttackOrigin.y += lcAttackAttributes.GetUpDownAttackOffset();
+                lcAttackOrigin.x -= lcAttackAttributes.GetHorizontalOffset();
+
+                if (pbIsFacingRight && !(lcAttackAttributes.GetGroundOrigination()))
+                {
+                    Vector3 ls = lcAttack.transform.localScale;
+                    ls.y *= -1f;
+                    lcAttack.transform.localScale = ls;
+                }
+            }
+            else if (peAttackDirection == AttackDirection.eeDownwards)
+            {
+                lcAttackOrigin.y -= lcAttackAttributes.GetUpDownAttackOffset();
+                lcAttackOrigin.x += lcAttackAttributes.GetHorizontalOffset();
+
+                if (!pbIsFacingRight && !(lcAttackAttributes.GetGroundOrigination()))
+                {
+                    Vector3 ls = lcAttack.transform.localScale;
+                    ls.y *= -1f;
+                    lcAttack.transform.localScale = ls;
+                }
+            }
+
+            lcAttack.transform.position = lcAttackOrigin;
+
+            //Add Attack to List of attacks
+            macActiveAttacks.Add(lcAttackComponent);
+
+            //Finally Start the Attack
+            lcAttackComponent.BeginAttack();
+
+            if (lcAttackAttributes.GetNumInstances() != 1)
+            {
+                lfStartAngle += (lcAttackAttributes.GetAdjustedAngle() / ((lcAttackAttributes.GetNumInstances() - 1)));
+            }
+
         }
 
-        lcAttack.transform.position = lcAttackOrigin;
+        macActiveAttacks.Clear();
 
-        //Add Attack to List of attacks
-        macActiveAttacks.Add(lcAttackComponent);
-
-        //Finally Start the Attack
-        lcAttackComponent.BeginAttack();
+        return lbGenerationSuccessful;
     }
 
     public void GenerateAttack(EnemyAttacks peEnemyAttack, int pnAttackDamage, AttackDirection peAttackDirection)
@@ -210,7 +277,7 @@ public class AttackGenerator : MonoBehaviour
         {
             lcAttackAttributes.SetDirection(peAttackDirection);
             lcAttackAttributes.SetAttackDamage(pnAttackDamage);
-            lcAttackComponent.SetAttributes(lcAttackAttributes);
+            lcAttackComponent.SetAttributes(lcAttackAttributes, 0);
             lcAttackComponent.SetAttacker(mcAttacker.GetComponent<EnemyAI>());
 
             if (!lcAttackAttributes.GetDisjointed())
@@ -290,7 +357,7 @@ public class AttackGenerator : MonoBehaviour
 
         if (mfTravelTimeTest == 0)
         {
-            mfTravelTimeTest = pcAttackAttributes.GetTravelTime();
+            mfTravelTimeTest = pcAttackAttributes.GetLifeTime();
         }
 
         if (mbSingleAnimationAttackTest == false)
@@ -303,6 +370,16 @@ public class AttackGenerator : MonoBehaviour
             mcAttackAnimationStringTest = pcAttackAttributes.GetAttackAnimationString();
         }
 
+        if(mnNumInstancesTest == 0)
+        {
+            mnNumInstancesTest = pcAttackAttributes.GetNumInstances();
+        }
+
+        if(mfAdjustedAngleTest == 0)
+        {
+            mfAdjustedAngleTest = pcAttackAttributes.GetAdjustedAngle();
+        }
+
 
         AttackAttributes lcAttackAtt = new AttackAttributes(
                 mfHorizontalOffsetTest,
@@ -313,11 +390,24 @@ public class AttackGenerator : MonoBehaviour
                 mbDisjointedTest, mbRevolveAroundTest,
                 mfTravelDistanceTest,
                 mfTravelTimeTest,
+                pcAttackAttributes.GetMovementForce(),
+                pcAttackAttributes.GetAttackMovementType(),
                 pcAttackAttributes.GetHasAnimationFlip(),
                 pcAttackAttributes.GetPlayerAttackAnimation(),
                 mbSingleAnimationAttackTest,
                 mcAttackAnimationStringTest,
-                pcAttackAttributes.GetAttackCapsuleColliderDirection());
+                pcAttackAttributes.GetAttackCapsuleColliderDirection(),
+                pcAttackAttributes.GetParticleTrailEnabled(),
+                pcAttackAttributes.GetParticleTrailColor(),
+                pcAttackAttributes.GetRotationRate(),
+                pcAttackAttributes.GetGroundOrigination(),
+                pcAttackAttributes.GetWallOrigination(),
+                pcAttackAttributes.GetHasSubAttack(),
+                pcAttackAttributes.GetSubAttackIndex(),
+                pcAttackAttributes.GetTangible(),
+                mfAdjustedAngleTest,
+                mnNumInstancesTest
+                );
 
         return lcAttackAtt;
     }

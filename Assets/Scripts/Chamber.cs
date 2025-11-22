@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.FilePathAttribute;
 
 public class Chamber : MonoBehaviour
 {
@@ -20,8 +21,13 @@ public class Chamber : MonoBehaviour
     //Flag indicating that this room is a start room
     public bool mbStartRoom = false;
 
+    //Tilemaps
     Tilemap mcChamberWallsTilemap;
     Tilemap mcChamberGroundTilemap;
+    Tilemap mcEnemySpawnPointTilemap;
+
+    //List of enemy spawn points
+    List<Vector2> macSpawnPoints = new List<Vector2>();
 
     //Map of Exits and Tiles to remove
     Dictionary<ChamberExits, List<Vector2>> macChamberExitDictionary 
@@ -78,6 +84,35 @@ public class Chamber : MonoBehaviour
             Debug.Log("Chamber Does not include ground component");
         }
 
+        Transform lcSpawnPointTransform = transform.Find("EnemySpawnPoints");
+
+        //If chamber contains 
+        if (lcSpawnPointTransform != null)
+        {
+            mcEnemySpawnPointTilemap = lcSpawnPointTransform.GetComponent<Tilemap>();
+
+            Debug.Log("Found Spawn Point Transform");
+
+            //Collect World coordinates from spawn points on map
+            for (int x = mcEnemySpawnPointTilemap.cellBounds.xMin; x < mcEnemySpawnPointTilemap.cellBounds.xMax; x++)
+            {
+                for (int y = mcEnemySpawnPointTilemap.cellBounds.yMin; y < mcEnemySpawnPointTilemap.cellBounds.yMax; y++)
+                {
+                    Vector3Int localLocation = new Vector3Int(
+                        x: x,
+                        y: y,
+                        z: 0);
+
+                    Vector3 location = mcEnemySpawnPointTilemap.CellToWorld(localLocation);
+                    if (mcEnemySpawnPointTilemap.HasTile(localLocation))
+                    {
+                        Debug.Log("Add Spawn Point X: " + location.x + " Y: " + location.y);
+                        macSpawnPoints.Add(location);
+                    }
+                }
+            }
+        }
+
 
         //Set chamber size based on tag
         //Start Room only has left/right exit
@@ -120,9 +155,27 @@ public class Chamber : MonoBehaviour
 
     public void PopulateWithEnemies()
     {
-        GameObject lcEnemy = Instantiate(mcEnemyPrefab, Vector3.zero, Quaternion.identity);
+        //If any designated spawn points exist in this chamber
+        if(macSpawnPoints.Count != 0)
+        {
+            Vector2 lcSpawnPoint = macSpawnPoints[UnityEngine.Random.Range(0, macSpawnPoints.Count)];
+
+            GameObject lcEnemy = Instantiate(mcEnemyPrefab, lcSpawnPoint, Quaternion.identity);
+            lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(3));
+            lcEnemy.transform.SetParent(this.transform);
+
+            macSpawnPoints.Remove(lcSpawnPoint);
+        }
+
+        /*
+        GameObject lcEnemy2 = Instantiate(mcEnemyPrefab, new Vector3(2, 0, 0), Quaternion.identity);
+        lcEnemy2.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(0));
+        lcEnemy2.transform.SetParent(this.transform);
+
+        GameObject lcEnemy3 = Instantiate(mcEnemyPrefab, new Vector3(-5, 0, 0), Quaternion.identity);
         lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(0));
         lcEnemy.transform.SetParent(this.transform);
+        */
     }
 
     /**
@@ -205,10 +258,13 @@ public class Chamber : MonoBehaviour
             //clear the exit tiles
             foreach (Vector2 lcExit in macChamberExitDictionary[peChamberExit])
             {
-                //Ground Tiles must be removed if Chamber exit is bottom
+                //Ground Tiles must be removed if Chamber exit is bottom or top
                 if(peChamberExit == ChamberExits.eeBottom || 
                     peChamberExit == ChamberExits.eeBottomLeft || 
-                    peChamberExit == ChamberExits.eeBottomRight)
+                    peChamberExit == ChamberExits.eeBottomRight ||
+                    peChamberExit == ChamberExits.eeTop ||
+                    peChamberExit == ChamberExits.eeTopLeft ||
+                    peChamberExit == ChamberExits.eeTopRight)
                 {
                     mcChamberGroundTilemap.SetTile(new Vector3Int((int)lcExit.x, (int)lcExit.y, 0), null);
                 }

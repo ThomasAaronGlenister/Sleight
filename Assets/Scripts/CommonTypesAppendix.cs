@@ -118,7 +118,8 @@ namespace Deck
         eeRightward = 0,
         eeLeftward = 1,
         eeDownwards = 2,
-        eeUpwards = 3
+        eeUpwards = 3,
+        eeBorderWards = 4
     }
 
     public enum PlayerAttackAnimation
@@ -164,12 +165,20 @@ namespace Deck
     {
         eeNone = 0,
         eeChaseFreakAttack_1 = 1,
-        eeChaseFreakAttack_2 = 2,
-        eeChaseFreakAttack_3 = 3,
-        eeChaseFreakAttack_4 = 4,
+        eeBatBiteAttack = 2,
+        eeChickFireballAttack = 3,
+        eeMinotaurSlashAttack = 4,
         eeChaseFreakAttack_5 = 5,
         eeChaseFreakAttack_6 = 6,
         eeChaseFreakAttack_7 = 7,
 
+    }
+
+    public enum AttackMovementType
+    {
+        eeNoMovement = 0,
+        eeFixedDistance = 1,
+        eeForceApplied = 2,
+        eeFollowPlayer = 3
     }
 }

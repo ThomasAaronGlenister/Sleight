@@ -25,7 +25,7 @@ TagManager:
   - Player
   - Attacks
   - Enemy
-  - 
+  - Confiners
   - 
   - 
   - 
@@ -46,11 +46,17 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 2776087011
+    locked: 0
   - name: AttackBack
     uniqueID: 109209469
     locked: 0
   - name: Player
     uniqueID: 3040848057
+    locked: 0
+  - name: Foreground
+    uniqueID: 696830337
     locked: 0
   - name: DeckCards
     uniqueID: 722848077

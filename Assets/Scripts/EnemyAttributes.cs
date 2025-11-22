@@ -4,6 +4,9 @@ using Deck;
 
 public class EnemyAttributes
 {
+    //Enemy Name
+    private string mcEnemyName;
+
     //Enemy HP
     private int mnHealthPoints;
 
@@ -53,17 +56,30 @@ public class EnemyAttributes
     //Enemy attack wind up time
     private float mnAttackWindupTime;
 
+    //Size adjustment for enemy
+    private float mfSizeMultiplier = 1;
+
+    //Animation Clips Path
+    private string mcEnemyAnimationClipsPath;
 
     //Animation clip string identifiers
-    private string mcEnemyAttackAnimationString;
-    private string mcEnemyDamagedAnimationString;
-    private string mcEnemyMoveAnimationString;
-    private string mcEnemyWindupAnimationString;
-    private string mcEnemyJumpAnimationString;
+    private AnimationClip mcEnemyAttackAnimationClip;
+    private AnimationClip mcEnemyDamageAnimationClip;
+    private AnimationClip mcEnemyMoveAnimationClip;
+    private AnimationClip mcEnemyWindupAnimationClip;
+    private AnimationClip mcEnemyJumpAnimationClip;
+    private AnimationClip mcEnemyIdleAnimationClip;
+
+    //Enemy hitbox size and offsets
+    private float mfBoxColliderWidthX = 1;
+    private float mfBoxColliderHeightY = 1;
+    private float mfBoxColliderXOffset = 0;
+    private float mfBoxColliderYOffset = 0;
 
 
     //Constructor
     public EnemyAttributes(
+        String name,
         int pnHealthPoints = 100,
         int pnArmorPoints = 0,
         float pfMovementSpeed = 1,
@@ -79,8 +95,14 @@ public class EnemyAttributes
         float pfWaypointDistance = 3,
         EnemyAttacks peEnemyAttack = EnemyAttacks.eeNone,
         int pnAttackDamage = 0,
-        float pfAttackWindupTime = 0f)
+        float pfAttackWindupTime = 0f,
+        float pfSizeMultiplier = 1,
+        float pfBoxColliderWidthX = 1,
+        float pfBoxColliderHeightY = 1,
+        float pfBoxColliderXOffset = 0,
+        float pfBoxColliderYOffset = 0)
     {
+        mcEnemyName = name;
         mnHealthPoints = pnHealthPoints;
         mnArmorPoints = pnArmorPoints;
         mfMovementSpeed = pfMovementSpeed;
@@ -97,20 +119,47 @@ public class EnemyAttributes
         meEnemyAttack = peEnemyAttack;
         mnAttackDamage = pnAttackDamage;
         mnAttackWindupTime = pfAttackWindupTime;
-     }
+        mfSizeMultiplier = pfSizeMultiplier;
+        mfBoxColliderWidthX = pfBoxColliderWidthX;
+        mfBoxColliderHeightY = pfBoxColliderHeightY;
+        mfBoxColliderXOffset = pfBoxColliderXOffset;
+        mfBoxColliderYOffset = pfBoxColliderYOffset;
+    }
 
     public void SetEnemyAnimations(
-        string pcEnemyAttackAnimationString,
-        string pcEnemyDamagedAnimationString,
-        string pcEnemyMoveAnimationString,
-        string pcEnemyWindupAnimationString,
-        string pcEnemyJumpAnimationString)
+        string pcEnemyAttackAnimationClipsPath)
     {
-         mcEnemyAttackAnimationString = pcEnemyAttackAnimationString;
-         mcEnemyDamagedAnimationString = pcEnemyDamagedAnimationString;
-         mcEnemyMoveAnimationString = pcEnemyMoveAnimationString;
-         mcEnemyWindupAnimationString = pcEnemyWindupAnimationString;
-         mcEnemyJumpAnimationString = pcEnemyJumpAnimationString;
+        mcEnemyAnimationClipsPath = pcEnemyAttackAnimationClipsPath;
+
+        AnimationClip[] EnemyClips = Resources.LoadAll<AnimationClip>(mcEnemyAnimationClipsPath);
+
+        foreach (AnimationClip lcClip in EnemyClips)
+        {
+            if(lcClip.name == mcEnemyName + "Move")
+            {
+                mcEnemyMoveAnimationClip = lcClip;
+            }
+            else if(lcClip.name == mcEnemyName + "Attack")
+            {
+                mcEnemyAttackAnimationClip = lcClip;
+            }
+            else if (lcClip.name == mcEnemyName + "Damage")
+            {
+                mcEnemyDamageAnimationClip = lcClip;
+            }
+            else if (lcClip.name == mcEnemyName + "Windup")
+            {
+                mcEnemyWindupAnimationClip = lcClip;
+            }
+            else if (lcClip.name == mcEnemyName + "Jump")
+            {
+                mcEnemyJumpAnimationClip = lcClip;
+            }
+            else if (lcClip.name == mcEnemyName + "Idle")
+            {
+                mcEnemyIdleAnimationClip = lcClip;
+            }
+        }
     }
 
 
@@ -123,6 +172,10 @@ public class EnemyAttributes
         { return mfMovementSpeed; }
     public float GetJumpPower()
         { return mfJumpPower; }
+    public float GetEnemyMass()
+    { return mfEnemyMass; }
+    public float GetGravityScale()
+        { return mfGravityScale; }
     public bool GetFlyingEnemy()
         { return mbFlyingEnemy; }
     public float GetFollowDistance()
@@ -143,16 +196,30 @@ public class EnemyAttributes
         { return mnAttackDamage; }
     public float GetEnemyAttackWindupTime()
         { return mnAttackWindupTime; }
+    public float GetSizeMultiplier()
+    { return mfSizeMultiplier; }
+
+    //BoxCollider Hitbox settings Getters
+    public Vector2 GetBoxColliderSize()
+    { return new Vector2(mfBoxColliderWidthX, mfBoxColliderHeightY); }
+    public Vector2 GetBoxColliderOffset()
+    { return new Vector2(mfBoxColliderXOffset, mfBoxColliderYOffset); }
 
     //Animation string getters
-    public string GetEnemyAttackAnimationString()
-    {  return mcEnemyAttackAnimationString; }
-    public string GetEnemyDamageAnimationString()
-    { return mcEnemyDamagedAnimationString; }
-    public string GetEnemyMoveAnimationString()
-    { return mcEnemyMoveAnimationString; }
-    public string GetWindupAttackAnimationString()
-    { return mcEnemyWindupAnimationString; }
-    public string GetEnemyJumpAnimationString()
-    { return mcEnemyJumpAnimationString; }
+    public string GetEnemyAnimationClips()
+    {  return mcEnemyAnimationClipsPath; }
+
+    public AnimationClip GetEnemyMoveAnimationClip()
+        { return mcEnemyMoveAnimationClip; }
+    public AnimationClip GetEnemyAttackAnimationClip()
+        { return mcEnemyAttackAnimationClip; }
+    public AnimationClip GetEnemyJumpAnimationClip()
+    { return mcEnemyJumpAnimationClip; }
+    public AnimationClip GetEnemyWindupAnimationClip()
+    { return mcEnemyWindupAnimationClip; }
+    public AnimationClip GetEnemyDamageAnimationClip()
+    { return mcEnemyDamageAnimationClip; }
+    public AnimationClip GetEnemyIdleAnimationClip()
+    { return mcEnemyIdleAnimationClip; }
+
 }

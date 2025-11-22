@@ -43,6 +43,9 @@ public class EnemyAI : MonoBehaviour
     //Enemy Sprite Renderer
     SpriteRenderer mcSpriteRenderer;
 
+    //Enemy Box Collider
+    BoxCollider2D mcEnemyBoxCollider;
+
     //Base color
     private Color mcOriginalColor;
 
@@ -58,6 +61,9 @@ public class EnemyAI : MonoBehaviour
     //Reference to attack generator child
     public AttackGenerator mcAttackGenerator;
 
+    // Animation overrides
+    private AnimatorOverrideController mcAnimationOverrideController;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -66,9 +72,12 @@ public class EnemyAI : MonoBehaviour
         mcRigidBody = GetComponent<Rigidbody2D>();
         mcAnimator = GetComponent<Animator>();
         mcSpriteRenderer = GetComponent<SpriteRenderer>();
+        mcSpriteRenderer.material.SetFloat("_DissolveAmount", 0);
+        mcEnemyBoxCollider = GetComponent<BoxCollider2D>();
         mcOriginalColor = mcSpriteRenderer.color;
 
         meUpdateEnemyState = EnemyState.eeEnemyIdle;
+
 
         InvokeRepeating("UpdatePath", 0f, 0.5f);
 
@@ -81,8 +90,54 @@ public class EnemyAI : MonoBehaviour
     {
         mcEnemyAttributes = pcEnemyAttributes;
 
+        transform.localScale *= mcEnemyAttributes.GetSizeMultiplier();
+
+        //Adjust box collider size based on sprite size
+        GetComponent<BoxCollider2D>().size = pcEnemyAttributes.GetBoxColliderSize();
+        GetComponent<BoxCollider2D>().offset = pcEnemyAttributes.GetBoxColliderOffset();
+
         mnHealthPoints = mcEnemyAttributes.GetHealthPoints();
         mnArmorPoints = mcEnemyAttributes.GetArmorPoints();
+
+        mcRigidBody = GetComponent<Rigidbody2D>();
+        mcRigidBody.gravityScale = mcEnemyAttributes.GetGravityScale();
+        mcRigidBody.mass = mcEnemyAttributes.GetEnemyMass();
+
+        mcAnimationOverrideController = new AnimatorOverrideController(mcAnimator.runtimeAnimatorController);
+
+        mcAnimator.runtimeAnimatorController = mcAnimationOverrideController;
+
+        var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>(mcAnimationOverrideController.overridesCount);
+        mcAnimationOverrideController.GetOverrides(overrides);
+
+        for (int i = 0; i < overrides.Count; i++)
+        {
+            switch (overrides[i].Key.name)
+            {
+                case "FreakAttack":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyAttackAnimationClip());
+                    break;
+                case "FreakMove":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyMoveAnimationClip());
+                    break;
+                case "FreakDamage":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyDamageAnimationClip());
+                    break;
+                case "FreakWindup":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyWindupAnimationClip());
+                    break;
+                case "FreakJump":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyJumpAnimationClip());
+                    break;
+                case "FreakIdle":
+                    overrides[i] = new KeyValuePair<AnimationClip, AnimationClip>(overrides[i].Key, mcEnemyAttributes.GetEnemyIdleAnimationClip());
+                    break;
+            }
+
+        }
+
+        mcAnimationOverrideController.ApplyOverrides(overrides);
+
     }
 
     public bool WithinAttackRange()
@@ -105,7 +160,7 @@ public class EnemyAI : MonoBehaviour
 
         if (mnHealthPoints <= 0)
         {
-            Destroy(gameObject);
+            StartCoroutine(Defeated());
         }
     }
 
@@ -124,19 +179,36 @@ public class EnemyAI : MonoBehaviour
         yield return null;
 
         //Pass attack card set along with direction to attack generator
-        mcAttackGenerator.GenerateAttack(EnemyAttacks.eeChaseFreakAttack_1, 5, (isFacingRight) ? AttackDirection.eeRightward : AttackDirection.eeLeftward);
+        mcAttackGenerator.GenerateAttack(mcEnemyAttributes.GetEnemyAttack(), mcEnemyAttributes.GetEnemyAttackDamage(),
+            GetAttackDirection());
 
         //Direction is Waypoint plus the current enemy position
         Vector2 lcDirection = (mcTarget.position - transform.position).normalized;
-        lcDirection.y += 0.3f;
+        lcDirection.y += mcEnemyAttributes.GetAttackLungeVertical();
 
-        mcRigidBody.AddForce(lcDirection * 4, ForceMode2D.Impulse);
+        mcRigidBody.AddForce(lcDirection * mcEnemyAttributes.GetAttackLungeMultiplier(), ForceMode2D.Impulse);
 
         mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyIdle);
 
         yield return new WaitForSeconds(1);
 
         meUpdateEnemyState = EnemyState.eeEnemyIdle;
+    }
+
+    private AttackDirection GetAttackDirection()
+    {
+        AttackDirection leAttackDirection = (isFacingRight) ? AttackDirection.eeRightward : AttackDirection.eeLeftward;
+
+        if (mcRigidBody.position.y - 2 > mcTarget.position.y)
+        {
+            leAttackDirection = AttackDirection.eeDownwards;
+        }
+        else if(mcRigidBody.position.y + 2 < mcTarget.position.y)
+        {
+            leAttackDirection = AttackDirection.eeUpwards;
+        }
+
+        return leAttackDirection;
     }
 
     /*
@@ -156,16 +228,34 @@ public class EnemyAI : MonoBehaviour
         //TODO: Add KnockBack to attack attributes
         lcDirection.y += 0.5f; 
 
-        mcRigidBody.AddForce(lcDirection * 4, ForceMode2D.Impulse);
+        mcRigidBody.AddForce(lcDirection * 2, ForceMode2D.Impulse);
 
         mcSpriteRenderer.color = Color.red;
 
         //TODO: Set to attacks stun time
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.2f);
         mcSpriteRenderer.color = mcOriginalColor;
 
         meUpdateEnemyState = EnemyState.eeEnemyIdle;
         mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyIdle);
+    }
+
+    /*
+     * METHOD: Coroutine called to initiate end of enemy object
+     */
+    private IEnumerator Defeated()
+    {
+        float lfDissolve = 0f;
+        while (lfDissolve < 1f)
+        {
+            lfDissolve += 0.005f;
+            mcSpriteRenderer.material.SetFloat("_DissolveAmount", lfDissolve);
+            yield return null;
+        }
+
+        yield return null;
+
+        Destroy(gameObject);
     }
 
     /*
@@ -184,8 +274,11 @@ public class EnemyAI : MonoBehaviour
         mfAttackCoolDownElapsedTime += Time.deltaTime;
 
         //Handle Animation updates
-        mbIsGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, mcGroundLayer);
-        mcAnimator.SetBool("Grounded", mbIsGrounded);
+        mbIsGrounded = Physics2D.Raycast(transform.position, Vector2.down, (mcEnemyAttributes.GetBoxColliderSize().y / 2) + 1f, mcGroundLayer);
+
+        Debug.DrawRay(transform.position, Vector2.down, Color.red, ((mcEnemyAttributes.GetBoxColliderSize().y / 2) + 1f));
+
+        mcAnimator.SetBool("Grounded", mbIsGrounded || mcEnemyAttributes.GetFlyingEnemy());
 
         mfDistanceToTarget = Vector2.Distance(mcRigidBody.position, mcTarget.position);
 
@@ -211,14 +304,19 @@ public class EnemyAI : MonoBehaviour
         }
         else if(mfDistanceToTarget < 1f)
         {
-
+            //TODO Set Idle animation
+            meUpdateEnemyState = EnemyState.eeEnemyIdle;
+            mcAnimator.SetInteger("EnemyState", (int)meUpdateEnemyState);
         }
         //If target is within range of Follow
-        else if (meUpdateEnemyState != EnemyState.eeEnemyKnockback)
+        else if (meUpdateEnemyState != EnemyState.eeEnemyKnockback && WithinAggroRange())
         {
+            meUpdateEnemyState = EnemyState.eeEnemyMove;
+            mcAnimator.SetInteger("EnemyState", (int)meUpdateEnemyState);
+
             //Direction is Waypoint minus the current enemy position
             Vector2 lcDirection = ((Vector2)mcPath.vectorPath[mnCurrentWaypoint] - mcRigidBody.position).normalized;
-            Vector2 lcForce = lcDirection * mcEnemyAttributes.GetMovementSpeed() * Time.deltaTime;
+            Vector2 lcForce = lcDirection * mcEnemyAttributes.GetMovementSpeed();
 
             //if Enemy is flying ground check need not occur
             if (!mcEnemyAttributes.GetFlyingEnemy())
@@ -235,8 +333,10 @@ public class EnemyAI : MonoBehaviour
             }
             else
             {
-                mcRigidBody.AddForce(lcForce);
-                meUpdateEnemyState = EnemyState.eeEnemyMove;
+                mcRigidBody.velocity = new Vector2(((lcForce.x > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed(), 
+                    ((lcForce.y > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed());
+
+                //mcRigidBody.AddForce(lcForce);
             }
         }
 

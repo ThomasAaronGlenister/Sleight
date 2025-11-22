@@ -25,6 +25,9 @@ public class AttackAttributes
     //Flag indicating if this attack sticks to parent object
     private bool mbDisjointed = false;
 
+    //Rate that the attack spins
+    private float mfRotationRate = 0;
+
     //Flag indicating this attack should revolve around a point during its lifetime
     private bool mbRevolveAround = false;
 
@@ -34,8 +37,14 @@ public class AttackAttributes
     //Value indicating movement distance of attack
     private float mfTravelDistance = 0f;
 
-    //Value indicating the time it takes attack to travel to end point
-    private float mfTravelTime = 1f;
+    //Value indicating the Life Time of this attack
+    private float mfLifeTime = 0f;
+
+    //Impulse force applied if attack movement type is Force
+    private float mfMovementForce = 0f;
+
+    //Movement type of the attack
+    private AttackMovementType meAttackMovement = AttackMovementType.eeNoMovement;
 
     //Flag indicating that this attack has reverse animation
     private bool mbHasAnimationFlip = false;
@@ -50,13 +59,53 @@ public class AttackAttributes
     private string mcAttackAnimationString;
 
     //Set of forces that may be applied to the attacker during the attack
-    AttackForces msAttackForces;
+    private AttackForces msAttackForces;
 
     //Direction this attacks hit box capsule is set to
     private CapsuleDirection2D meAttackCapsuleColliderDirection;
 
     //Direction this attack is set to go in
     AttackDirection meAttackDirection;
+
+    //Partical Trail Values
+    private bool mbParticleTrailEnabled;
+    private Color mcParticleTrailColor;
+
+    //Flags indicating this attack originates from the ground/wall
+    private bool mbGroundOrigination = false;
+    private bool mbWallOrigination = false;
+
+    //Flag indicating this attack has a sub attack
+    private bool mbHasSubAttack = false;
+
+    //Index of the attack produced by the attack
+    private int mnSubAttackIndex = 0;
+
+    //Flag indicating this attack can be used as a wall/platform
+    private bool mbTangible = false;
+
+    //Angle adjustment of disjointed attack
+    private float mfAdjustedAngle = 0;
+
+    //Number of duplications of this attack
+    private int mnNumberOfInstances = 0;
+
+    private float mfMass = 0f;
+    private float mfGravityScale = 0f;
+
+    //Time before Attack begins
+    private float mfAttackDelay = 0f;
+
+    bool mbCreateSubAttackOnEnd = false;
+    AttackDirection mcSubAttackDirectionOnRight = AttackDirection.eeRightward;
+    AttackDirection mcSubAttackDirectionOnLeft = AttackDirection.eeLeftward;
+    AttackDirection mcSubAttackDirectionOnUp = AttackDirection.eeUpwards;
+    AttackDirection mcSubAttackDirectionOnDown = AttackDirection.eeDownwards;
+
+    AttackDirection[] macSubAttackDirections = new AttackDirection[4];
+
+
+    private AttackAttributes attackAttributes;
 
     /**
      * METHOD: Constructor for Attack Settings.
@@ -79,12 +128,33 @@ public class AttackAttributes
         bool pbDisjointed,
         bool pbRevolveAround,
         float pfTravelDistance,
-        float pfTravelTime,
+        float pfLifeTime,
+        float pfMovementForce,
+        AttackMovementType peAttackMovement,
         bool pbHasAnimationFlip,
         int pnAttackerAnimation,
         bool pbSingleAnimationLifetime,
         string pcAttackAnimationString,
-        CapsuleDirection2D peAttackCapsuleColliderDirection)
+        CapsuleDirection2D peAttackCapsuleColliderDirection,
+        bool pbParticleTrail,
+        Color pcParticleColor,
+        float pfRotationRate = 0,
+        bool pbGroundOrigination = false,
+        bool pbWallOrigination = false,
+        bool pbHasSubAttack = false,
+        int pnSubAttackIndex = 0,
+        bool pbTangible = false,
+        float pfAdjustedAngle = 0,
+        int pnNumberOfAttackInstances = 1,
+        float pfMass = 1,
+        float pfGravityScale = 1,
+        float pfAttackDelay = 0,
+        bool pbCreateSubAttackOnEnd = false,
+        AttackDirection pcSubAttackDirectionOnRight = AttackDirection.eeRightward,
+        AttackDirection pcSubAttackDirectionOnLeft = AttackDirection.eeLeftward,
+        AttackDirection pcSubAttackDirectionOnUp = AttackDirection.eeUpwards,
+        AttackDirection pcSubAttackDirectionOnDown = AttackDirection.eeDownwards
+        )
     {
         mfHorizontalOffset = pfHorzOffset;
         mfVerticalOffset = pfVertOffset;
@@ -94,125 +164,186 @@ public class AttackAttributes
         mbDisjointed = pbDisjointed;
         mbRevolveAround = pbRevolveAround;
         mfTravelDistance = pfTravelDistance;
-        mfTravelTime = pfTravelTime;
+        mfLifeTime = pfLifeTime;
+        mfMovementForce = pfMovementForce;  
+        meAttackMovement = peAttackMovement;
         mbHasAnimationFlip = pbHasAnimationFlip;
         mnAttackerAnimation = pnAttackerAnimation;
         mbSingleAnimationAttack = pbSingleAnimationLifetime;
         mcAttackAnimationString = pcAttackAnimationString;
         meAttackCapsuleColliderDirection = peAttackCapsuleColliderDirection;
+        mbParticleTrailEnabled = pbParticleTrail;
+        mcParticleTrailColor = pcParticleColor;
+        mfRotationRate = pfRotationRate;
+
+        mbGroundOrigination = pbGroundOrigination;
+        mbWallOrigination = pbWallOrigination;
+
+        mbHasSubAttack = pbHasSubAttack;
+        mnSubAttackIndex = pnSubAttackIndex;
+
+        mbTangible = pbTangible;
+
+        mfAdjustedAngle = pfAdjustedAngle;
+        mnNumberOfInstances = pnNumberOfAttackInstances;
+
+        mfMass = pfMass;
+        mfGravityScale = pfGravityScale;
+
+        mfAttackDelay = pfAttackDelay;
+
+        mbCreateSubAttackOnEnd = pbCreateSubAttackOnEnd;
+
+        mcSubAttackDirectionOnRight = pcSubAttackDirectionOnRight;
+        mcSubAttackDirectionOnLeft = pcSubAttackDirectionOnLeft;
+        mcSubAttackDirectionOnUp = pcSubAttackDirectionOnUp;
+        mcSubAttackDirectionOnDown = pcSubAttackDirectionOnDown;
+
+        macSubAttackDirections[(int)AttackDirection.eeRightward] = mcSubAttackDirectionOnRight;
+        macSubAttackDirections[(int)AttackDirection.eeLeftward] = mcSubAttackDirectionOnLeft;
+        macSubAttackDirections[(int)AttackDirection.eeUpwards] = mcSubAttackDirectionOnUp;
+        macSubAttackDirections[(int)AttackDirection.eeDownwards] = mcSubAttackDirectionOnDown;
     }
 
     //Horizontal Offset Getter
     public float GetHorizontalOffset()
-    {
-        return mfHorizontalOffset;
-    }
+    { return mfHorizontalOffset; }
 
     //Vertial offset getter
     public float GetVerticalOffset()
-    {
-        return mfVerticalOffset;
-    }
+    { return mfVerticalOffset; }
 
     //Side attack offset getter
     public float GetSideAttackOffset()
-    {
-        return mfSideAttackOffset;
-    }
+    { return mfSideAttackOffset; }
 
     //Up down attack offset getter
     public float GetUpDownAttackOffset()
-    {
-        return mfUpDownAttackOffset;
-    }
+    { return mfUpDownAttackOffset; }
 
     //Size multiplier getter
     public float GetAttackBaseSizeMultiplier()
-    {
-        return mfAttackBaseSizeMultiplier;
-    }
+    { return mfAttackBaseSizeMultiplier; }
 
     //Disjointed Getter
     public bool GetDisjointed()
-    {
-        return mbDisjointed;
-    }
+    { return mbDisjointed; }
 
     //Revolution Getter
     public bool GetRevolveAround()
-    {
-        return mbRevolveAround;
-    }
+    { return mbRevolveAround; }
 
     //Travel Distance Getter
     public float GetTravelDistance()
-    {
-        return mfTravelDistance;
-    }
+    { return mfTravelDistance; }
 
     //Travel Time Getter
-    public float GetTravelTime()
-    {
-        return mfTravelTime;
-    }
+    public float GetLifeTime()
+    { return mfLifeTime; }
+
+    public float GetMovementForce()
+    { return mfMovementForce; }
+
+    public AttackMovementType GetAttackMovementType()
+    { return meAttackMovement; }
 
     //Has animation flip getter
     public bool GetHasAnimationFlip()
-    {
-        return mbHasAnimationFlip;
-    }
+    { return mbHasAnimationFlip; }
 
     //Player Attack Animation Getter
     public int GetPlayerAttackAnimation()
-    {
-        return mnAttackerAnimation;
-    }
+    { return mnAttackerAnimation; }
 
     //Single animation lifetime getter
     public bool GetSingleAnimationLifetime()
-    {
-        return mbSingleAnimationAttack;
-    }
+    { return mbSingleAnimationAttack; }
 
     //Attack Animation string getter
     public string GetAttackAnimationString()
-    {
-        return mcAttackAnimationString;
-    }
+    { return mcAttackAnimationString; }
 
     //Revolution point getter
     public Vector2 GetRevolutionPoint()
-    {
-        return mcRevolutionPoint;
-    }
+    { return mcRevolutionPoint; }
 
     //Attack Damage Setter
     public void SetAttackDamage(int pnDamage)
-    {
-        mnAttackDamage = pnDamage;
-    }
+    { mnAttackDamage = pnDamage; }
 
     //Attack Damage getter
     public int GetAttackDamage()
-    {
-        return mnAttackDamage;
-    }
+    { return mnAttackDamage; }
 
     //Capsule collider direction getter
     public CapsuleDirection2D GetAttackCapsuleColliderDirection()
-    {
-        return meAttackCapsuleColliderDirection;
-    }
+    { return meAttackCapsuleColliderDirection; }
+
+    //Particle Trail Flag getter
+    public bool GetParticleTrailEnabled()
+    { return mbParticleTrailEnabled; }
+
+    //Particle trail Color getter
+    public Color GetParticleTrailColor()
+    { return mcParticleTrailColor; }
+
+    //Rotation rate getter
+    public float GetRotationRate()
+    { return mfRotationRate; }
+
+    //Ground Origination getter
+    public bool GetGroundOrigination()
+    { return mbGroundOrigination; }
+
+    //Wall Origination Getter
+    public bool GetWallOrigination()
+    { return mbWallOrigination; }
+
+    //Has sub attack getter
+    public bool GetHasSubAttack()
+    { return mbHasSubAttack; }
+
+    //Sub Attack index getter
+    public int GetSubAttackIndex()
+    { return mnSubAttackIndex; }
+
+    //Is tangible getter
+    public bool GetTangible()
+    { return mbTangible; }
+
+    //Adjusted angle getter
+    public float GetAdjustedAngle()
+    { return mfAdjustedAngle; }
+    public void SetAdjustedAngle(float pfAdjustedAngle)
+    { mfAdjustedAngle = pfAdjustedAngle; }
+
+    //Number of duplicate attacks getter
+    public int GetNumInstances()
+    { return mnNumberOfInstances; }
+
+    //Mass Getter
+    public float GetMass()
+    { return mfMass; }
+
+    //Gravity Scale getter
+    public float GetGravityScale()
+    { return mfGravityScale; }
+
+    public float GetAttackDelay()
+    { return mfAttackDelay; }
+
+    //Sub Attack on end Getter
+    public bool GetCreateSubAttackOnEnd()
+    { return mbCreateSubAttackOnEnd; }
+
+    //Sub attack direction getter
+    public AttackDirection GetSubAttackDirection(AttackDirection leParentAttackDirection)
+    { return macSubAttackDirections[(int)leParentAttackDirection]; }
 
 
     //Attack Direction Setter/Getter
     public void SetDirection(AttackDirection peAttackDirection)
-    {
-        meAttackDirection = peAttackDirection;
-    }
-
+    { meAttackDirection = peAttackDirection; }
     public AttackDirection GetDirection()
-    {
-        return meAttackDirection;
-    }
+    { return meAttackDirection; }
 }

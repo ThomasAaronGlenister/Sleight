@@ -131,6 +131,11 @@ public class LevelManager : MonoBehaviour
 
                 lcChamber.PopulateWithEnemies();
 
+                if (lnNumChambers != 0)
+                {
+                    //lcChamber.PopulateWithEnemies();
+                }
+
                 //for each potential exit
                 for (int lnNumExits = 0; lnNumExits < lcChamber.GetNumPotentialRooms(); lnNumExits++)
                 {
@@ -346,9 +351,10 @@ public class LevelManager : MonoBehaviour
 
         lcNextChamber.Enter();
 
+        yield return new WaitForSeconds(0.2f);
+
         mcTransition.SetTrigger("End");
 
-        yield return new WaitForSeconds(0.5f);
 
         mcCurrentChamber = pcNextChamber;
     }

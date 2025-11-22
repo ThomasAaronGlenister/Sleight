@@ -83,8 +83,8 @@ public class DeckController : MonoBehaviour
     private int mcNextCardIndex;
 
     //Display card cycle center position on the UI canvas
-    private int DeckPositionX = 980;
-    private int DeckPositionY = -473;
+    private float DeckPositionX = 965.4f;
+    private float DeckPositionY = -537;
 
     //Deck Cycle direction (true = counter clockwise) (false = clockwise)
     public bool DeckCycle = true;
@@ -102,6 +102,7 @@ public class DeckController : MonoBehaviour
     public bool mbAddCardShiftActivate = false;
 
     public float mfCardDissolve = 0f;
+    public float TestDissolve = 0f;
 
     public float mrCardDissolveRate = 6f;
 
@@ -211,7 +212,7 @@ public class DeckController : MonoBehaviour
 
         if(mnActiveDeckTopCardPointer != (macActiveDeck.Count - 1))
         {
-            CardTilt();
+            //CardTilt();
         }
 
     } //End Update

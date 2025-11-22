@@ -39,6 +39,14 @@ public class PlayerMovement : MonoBehaviour
     public int maxJumps = 2;
     int jumpsRemaining;
 
+    [Header("Dashing")]
+    public float mfDashSpeed = 10f;
+    public float mfDashDuration = 0.3f;
+    public float mfDashCooldown = 2f;
+    private bool mbIsDashing = false;
+    private bool mbCanDash = true;
+    TrailRenderer mcDashTrail;
+
     [Header("Acceleration")]
     public float acceleration = 2f;
 
@@ -112,6 +120,12 @@ public class PlayerMovement : MonoBehaviour
     public MapController MapControllerAccess;
     public HandController HandControllerAccess;
 
+    //Player Sprite Renderer
+    SpriteRenderer mcSpriteRenderer;
+
+    //Base color
+    private Color mcOriginalColor;
+
     //List of Entrance positions in a chamber this player may arrive at
     Dictionary<int, Vector2> macPlayerEntranceTransitions = new Dictionary<int, Vector2>();
 
@@ -120,6 +134,10 @@ public class PlayerMovement : MonoBehaviour
 
     //Flag indicating that reload is being performed 
     private bool mbReloading;
+
+    private bool mbTakingDamage = false;
+
+    public Vector2[] macDirectionVectors = new Vector2[4];
 
     // Start is called before the first frame update
     void Start()
@@ -134,9 +152,20 @@ public class PlayerMovement : MonoBehaviour
 
         HandControllerAccess = GameObject.Find("HandController").GetComponent<HandController>();
 
+        mcSpriteRenderer = GetComponent<SpriteRenderer>();
+
+        mcOriginalColor = mcSpriteRenderer.color;
+
+        mcDashTrail = GetComponent<TrailRenderer>();
+
         mcPlayerHealthBarAnimator = mcPlayerHealthBar.GetComponent<Animator>();
         mcPlayerHealthBarAnimator.SetFloat("HealthBarSpeed", 0);
         mcPlayerHealthBarAnimator.Play("HealthSlider");
+
+        macDirectionVectors[(int)AttackDirection.eeRightward] = Vector2.right;
+        macDirectionVectors[(int)AttackDirection.eeLeftward] = Vector2.left;
+        macDirectionVectors[(int)AttackDirection.eeUpwards] = Vector2.up;
+        macDirectionVectors[(int)AttackDirection.eeDownwards] = Vector2.down;
 
         InitializeExitTransitions();
     }
@@ -154,7 +183,7 @@ public class PlayerMovement : MonoBehaviour
             //Trigger Chamber transition routine
 
             var lcNextChamberAttributes = mcLevelManagerAccess.ChangeChamber(GetCheckExitTaken(lePotentialExit));
-            StartCoroutine(ChangeChamberCoroutine(lcNextChamberAttributes.Item1, lcNextChamberAttributes.Item2));
+            StartCoroutine(ChangeChamberCoroutine(lcNextChamberAttributes.Item1, lcNextChamberAttributes.Item2, lePotentialExit == ChamberExits.eeTop));
         }
 
         if (UpdateDisplayHealth)
@@ -170,6 +199,7 @@ public class PlayerMovement : MonoBehaviour
         if (mbReloading)
         {
             mbMovementProhibited = true;
+            rb.velocity = Vector2.zero;
 
             mbReloading = DeckControllerAccess.ChargingReloadCard();
             if (!mbReloading)
@@ -179,12 +209,12 @@ public class PlayerMovement : MonoBehaviour
                 mbMovementProhibited = false;
             }
         }
-        else
+        else if(!mbTakingDamage)
         {
             mbMovementProhibited = false;
         }
 
-        if (!isWallJumping && !mbMovementProhibited)
+        if (!isWallJumping && !mbMovementProhibited && !mbIsDashing)
         {
             rb.velocity = new Vector2(horizontalMovement * moveSpeed, rb.velocity.y);
             Flip();
@@ -192,7 +222,7 @@ public class PlayerMovement : MonoBehaviour
 
 
         mbUpStrike = Input.GetKey(KeyCode.W);
-        mbDownStrike = Input.GetKey(KeyCode.S);
+        mbDownStrike = Input.GetKey(KeyCode.S) && !grounded;
 
         animator.SetFloat("magnitude", rb.velocity.magnitude);
         animator.SetFloat("yVelocity", rb.velocity.y);
@@ -200,7 +230,10 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("attackFlip", mbAttackFlip);
         animator.SetBool("Reload", mbReloading);
 
-        animator.SetTrigger("Reset");
+        if(!mbIsDashing)
+        {
+            animator.SetTrigger("Reset");
+        }
 
     }
 
@@ -211,10 +244,38 @@ public class PlayerMovement : MonoBehaviour
 
         UpdateDisplayHealth = true;
 
+        StartCoroutine(TakeDamage(peAttackDirection));
+
         if (mnPlayerHealth <= 0)
         {
             //TODO GAME OVER
         }
+    }
+
+    /*
+     * METHOD: Coroutine to Take Damage function called to update player health and apply knockback
+     */
+    private IEnumerator TakeDamage(AttackDirection peAttackDirection)
+    {
+        mbTakingDamage = true;
+        mbMovementProhibited = true;
+
+        //Direction is Waypoint minus the current enemy position
+        Vector2 lcDirection = macDirectionVectors[(int)peAttackDirection];
+
+        lcDirection.y += 0.5f;
+
+        lcDirection.x += lcDirection.x;
+
+        rb.AddForce(lcDirection * 2, ForceMode2D.Impulse);
+
+        mcSpriteRenderer.color = Color.red;
+
+        //TODO: Set to attacks stun time
+        yield return new WaitForSeconds(0.2f);
+        mcSpriteRenderer.color = mcOriginalColor;
+        mbMovementProhibited = false;
+        mbTakingDamage = false;
     }
 
     //Updates UI to Displayed Health
@@ -247,6 +308,38 @@ public class PlayerMovement : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         horizontalMovement = context.ReadValue<Vector2>().x;
+    }
+
+    //Function to Move player
+    public void Dash(InputAction.CallbackContext context)
+    {
+        if(context.performed && mbCanDash)
+        {
+            StartCoroutine(DashCoroutine());
+        }
+    }
+
+    private IEnumerator DashCoroutine()
+    {
+        mbCanDash = false;
+        mbIsDashing = true;
+        mcDashTrail.emitting = true;
+
+        animator.SetTrigger("Dash");
+
+        float lfDashDirection = isFacingRight ? 1f : -1f;
+
+        rb.velocity = new Vector2(lfDashDirection * mfDashSpeed, rb.velocity.y);
+
+        yield return new WaitForSeconds(mfDashDuration);
+
+        rb.velocity = new Vector2(0f, rb.velocity.y);
+
+        mbIsDashing = false;
+        mcDashTrail.emitting = false;
+
+        yield return new WaitForSeconds(mfDashCooldown);
+        mbCanDash = true;
     }
 
     public void ShiftDeckCounterClockWise(InputAction.CallbackContext context)
@@ -405,7 +498,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if (jumpsRemaining > 0)
+        if (jumpsRemaining > 0 || context.canceled)
         {
             if (context.performed)
             {
@@ -592,6 +685,11 @@ public class PlayerMovement : MonoBehaviour
                 new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 0),
                 (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : 0))));
 
+            //Bottom Right Entrance
+            macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeBottomRight),
+                new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfWideXOffset : 0),
+                (lfBaseY)));
+
             //Bottom Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeBottom),
                 new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 5),
@@ -605,9 +703,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    IEnumerator ChangeChamberCoroutine(ChamberSize peNextChamberSize, ChamberExits peNextChamberEntrance)
+    IEnumerator ChangeChamberCoroutine(ChamberSize peNextChamberSize, ChamberExits peNextChamberEntrance, bool pbTopExitTaken)
     {
         rb.velocity = new Vector2(0, 0);
+        rb.Sleep();
 
         //Restict Player Movement
         mbMovementProhibited = true;
@@ -619,7 +718,15 @@ public class PlayerMovement : MonoBehaviour
         transform.position = CheckExitTransition(peNextChamberSize, peNextChamberEntrance);
 
         //Wait for seconds
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1.5f);
+
+        rb.WakeUp();
+
+        //If player is jumping up through a top exit, apply extra force on entrance
+        if (pbTopExitTaken)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpPower * 2);
+        }
 
         //resume control
         mbMovementProhibited = false;
