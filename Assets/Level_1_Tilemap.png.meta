@@ -110,27 +110,6 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Level_1_Tilemap_0
-      rect:
-        serializedVersion: 2
-        x: 136
-        y: 2584
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f159b7b17f1b97c4facce53587c1409a
-      internalID: 699041799
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: Level_1_Tilemap_1
       rect:
         serializedVersion: 2
@@ -8253,6 +8232,27 @@ TextureImporter:
       bones: []
       spriteID: cc7e6299dcc0d2b499af673913995a11
       internalID: 217027397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Level_1_Tilemap_0
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 2584
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd5e03cd455edad46bc1204cb85b2537
+      internalID: 699041799
       vertices: []
       indices: 
       edges: []

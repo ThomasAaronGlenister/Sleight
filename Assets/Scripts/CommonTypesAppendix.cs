@@ -25,6 +25,8 @@ namespace Deck
         public float StrikeForceY { get; }
     }
 
+    /****************** GLOBAL VARIABLES ************************/
+
 
     /****************** ENUMS ************************/
 
@@ -55,9 +57,10 @@ namespace Deck
         eeBreak,
         eePierce,
         eeBurn,
+        eeKnock,
         eeSap,
         eeFrost,
-        eeKnock
+        eeSuitEffectEnd
     }
 
     //Card Rank values
@@ -168,8 +171,8 @@ namespace Deck
         eeBatBiteAttack = 2,
         eeChickFireballAttack = 3,
         eeMinotaurSlashAttack = 4,
-        eeChaseFreakAttack_5 = 5,
-        eeChaseFreakAttack_6 = 6,
+        eeSpriteFireballAttack = 5,
+        eeGhostSlashAttack = 6,
         eeChaseFreakAttack_7 = 7,
 
     }
@@ -180,5 +183,20 @@ namespace Deck
         eeFixedDistance = 1,
         eeForceApplied = 2,
         eeFollowPlayer = 3
+    }
+
+    public enum CoinType
+    {
+        eeSmallCoin = 0,
+        eeMediumCoin = 1,
+        eeLargeCoin = 2
+    }
+
+    public enum TreasureType
+    {
+        eeCoinTreasure = 0,
+        eeHealthTreasure = 1,
+        eeCardTreasure = 2,
+        eeSkillTreasure = 3
     }
 }

@@ -29,11 +29,16 @@ public class Card
     //Rank of Card
     private CardRank meCardRank;
 
+    //Base Damage of Card derived from rank
     private int mnBaseDamage;
+
+    //Percentage chance of secondary effect derived from suit
+    int mnEffectChancePercentage;
 
     //Constructor :: 
     public Card(string paCardDescription, CardSuit peCardSuit, CardAttackType peAttackType,
-        SuitEffect peSuitEffect, CardRank peCardRank, RankEffect peRankEffect, Sprite pcCardSprite)
+        SuitEffect peSuitEffect, CardRank peCardRank, RankEffect peRankEffect, Sprite pcCardSprite, 
+        int pnEffectChancePercentage = 0)
     {
         //Assign Base Card information
         maCardDescription = paCardDescription;
@@ -43,6 +48,7 @@ public class Card
         meCardRank = peCardRank;
         mcCardSprite = pcCardSprite;
         mcCardOverlaySprite = null;
+        mnEffectChancePercentage = pnEffectChancePercentage;
 
         mnBaseDamage = GetBaseDamage(meCardRank);
     }
@@ -63,6 +69,11 @@ public class Card
         return meSuit;
     }
 
+    public SuitEffect GetCardSuitEffect()
+    { 
+        return meSuitEffect; 
+    }
+
     public void SetCardSprite(Sprite pcCardSprite)
     {
         mcCardSprite = pcCardSprite;
@@ -76,6 +87,11 @@ public class Card
     public void SetCardOverlaySprite(Sprite pcCardSprite)
     {
         mcCardOverlaySprite = pcCardSprite;
+    }
+
+    public int GetCardEffectChance()
+    {
+        return mnEffectChancePercentage;
     }
 
     //Determines Base damage based on card rank

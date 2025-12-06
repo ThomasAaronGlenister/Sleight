@@ -101,6 +101,10 @@ public class DeckController : MonoBehaviour
     public bool mbAddHandActivate = false;
     public bool mbAddCardShiftActivate = false;
 
+    public bool mbInsertCardActivate = false;
+    public bool mbInsertCardShiftActivate = false;
+    Card mcInsertCard = null;
+
     public float mfCardDissolve = 0f;
     public float TestDissolve = 0f;
 
@@ -192,7 +196,12 @@ public class DeckController : MonoBehaviour
             AddCardToHandDisplayAdjust();
         }
 
-        if(start)
+        if (mbInsertCardActivate)
+        {
+            AddCardToDeckDisplayAdjust(mcInsertCard);
+        }
+
+        if (start)
         {
             CardsShiftReload = true;
             mbReload = true;
@@ -279,6 +288,72 @@ public class DeckController : MonoBehaviour
         }
         
     } //End ReloadDeck
+
+    //Method used to add new card to the deck
+    private void AddCardToDeckDisplayAdjust(Card pcCard)
+    {
+        //replace Display cards counter clockwise
+        bool lbCycleDirection = true;
+        int lnCardsToCycle = 6;
+
+        if (mbInsertCardShiftActivate)
+        {
+            //shift display card sprites one off clockwise
+            for (int i = 0; i < lnCardsToCycle; i++)
+            {
+
+                if ((mnActiveDeckTopCardPointer + i) < macActiveDeck.Count)
+                {
+                    int lnFrontOffset = GetDisplayCardOffsetIndex((mcFrontCardIndex), (i + 1), !lbCycleDirection);
+                    AssignCardToDisplay(DisplayCardsImages[lnFrontOffset],
+                                    macActiveDeck[mnActiveDeckTopCardPointer + i]);
+                }
+            }
+
+            //move the display cards into one counter clockwise shifted position
+            for (int i = 0; i < lnCardsToCycle; i++)
+            {
+                int lnFrontOffset = GetDisplayCardOffsetIndex((mcFrontCardIndex), lnCardsToCycle - i, !lbCycleDirection);
+                ShiftDisplayCard(lnFrontOffset,
+                    GetDisplayCardOffsetIndex(lnFrontOffset, 1, lbCycleDirection));
+
+            }
+
+            mbInsertCardShiftActivate = false;
+        }
+
+        //Rotate Adjusted cards back up
+        //Loop over all display card game objects
+        for (int i = 0; i < lnCardsToCycle; i++)
+        {
+            int CardOffset = GetDisplayCardOffsetIndex(mcFrontCardIndex, (i + 1), !lbCycleDirection);
+
+            //Maintain card orientation as revolution occurs
+            Quaternion lcOriginalRotation = DisplayCardsImages[CardOffset].transform.rotation;
+
+            //rotate stack of cards
+            //if pbDirection is set to false rotate in the opposite direction 
+            DisplayCardsImages[CardOffset].transform.RotateAround(this.transform.position, Vector3.forward,
+                ((lbCycleDirection) ? -1 : 1) * mfRotationIncrement);
+
+            //Return card to original orientation
+            DisplayCardsImages[CardOffset].transform.rotation = lcOriginalRotation;
+        }
+
+        mfCycleDeckStopActivate += (mfRotationIncrement);
+
+        if(mfCycleDeckStopActivate >= 30f)
+        {
+            macActiveDeck.Insert(mnActiveDeckTopCardPointer, pcCard);
+            macPlayerDeck.Insert(mnActiveDeckTopCardPointer, pcCard);
+            AssignCardToDisplay(DisplayCardsImages[mcFrontCardIndex], pcCard);
+
+            mbInsertCardActivate = false;
+
+            mfCycleDeckStopActivate = 0;
+        }
+        
+    }
 
     /**
      * METHOD:: ActivateCardDisplayAdjust 
@@ -716,9 +791,21 @@ public class DeckController : MonoBehaviour
      * METHOD:: AddCard 
      * 
      */
-    private void AddCard(Card pcCard)
+    public void AddCard(Card pcCard)
     {
         macActiveDeck.Add(pcCard);
+    } // End AddCard
+
+    /**
+     * METHOD:: Insert Card to Active Deck 
+     * 
+     */
+    public void InsertNewCard(Card pcCard)
+    {
+        mbInsertCardActivate = true;
+        mbInsertCardShiftActivate = true;
+
+        mcInsertCard = pcCard;
     } // End AddCard
 
     /**
@@ -1031,13 +1118,28 @@ public class DeckController : MonoBehaviour
                     string lcCardDescription = GetRankString((CardRank)lnRankCount) + " of " + lcSuitString + "s";
 
                     Card lcCard = new Card(lcCardDescription, (CardSuit)lnSuitCount, CardAttackType.eePhysicalAttack, (SuitEffect)lnSuitCount,
-                        (CardRank)lnRankCount, RankEffect.eeNone, lacCardSprites[lnRankCount]);
+                        (CardRank)lnRankCount, RankEffect.eeNone, lacCardSprites[lnRankCount], 5);
 
                     macFullDeck.Add(lcCard);
                 }
             }
         }
     } //End InitializeFullDeck
+
+    /**
+     * METHOD:: Returns a Card at a specific index or by random from the full deck.
+     */
+    public Card GetCard(int pnCardIndex = -1)
+    {
+        if(pnCardIndex != -1)
+        {
+            return macFullDeck[pnCardIndex];
+        }
+        else
+        {
+            return macFullDeck[Random.Range(0, macFullDeck.Count)];
+        }
+    }
 
     /**
      * METHOD::  GetSuitString: Returns a string identifier for the card suit provided.

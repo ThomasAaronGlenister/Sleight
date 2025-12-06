@@ -102,10 +102,19 @@ public class AttackAttributes
     AttackDirection mcSubAttackDirectionOnUp = AttackDirection.eeUpwards;
     AttackDirection mcSubAttackDirectionOnDown = AttackDirection.eeDownwards;
 
+    //Flag indicating this attack is directed towards closest target
+    private bool mbMoveTowardsTarget = false;
+
     AttackDirection[] macSubAttackDirections = new AttackDirection[4];
 
+    //Array where index equals Suit Effect type and Value is percentage chance to proc
+    int[] manSuitEffectPercentages = new int[(int)SuitEffect.eeSuitEffectEnd];
 
-    private AttackAttributes attackAttributes;
+    //Base Suit Effect Durations
+    float[] mafSuitEffectDurations = new float[(int)SuitEffect.eeSuitEffectEnd] { 0.1f,0.1f,0.1f,5,5,5,5 };
+
+    //Flag indicating this attack should cause an animation on the attacker to play
+    private bool mbAnimateAttacker = true;
 
     /**
      * METHOD: Constructor for Attack Settings.
@@ -153,7 +162,9 @@ public class AttackAttributes
         AttackDirection pcSubAttackDirectionOnRight = AttackDirection.eeRightward,
         AttackDirection pcSubAttackDirectionOnLeft = AttackDirection.eeLeftward,
         AttackDirection pcSubAttackDirectionOnUp = AttackDirection.eeUpwards,
-        AttackDirection pcSubAttackDirectionOnDown = AttackDirection.eeDownwards
+        AttackDirection pcSubAttackDirectionOnDown = AttackDirection.eeDownwards,
+        bool pbMoveTowardsTarget = false,
+        bool pbAnimateAttacker = true
         )
     {
         mfHorizontalOffset = pfHorzOffset;
@@ -199,10 +210,34 @@ public class AttackAttributes
         mcSubAttackDirectionOnUp = pcSubAttackDirectionOnUp;
         mcSubAttackDirectionOnDown = pcSubAttackDirectionOnDown;
 
+        mbMoveTowardsTarget = pbMoveTowardsTarget;
+
         macSubAttackDirections[(int)AttackDirection.eeRightward] = mcSubAttackDirectionOnRight;
         macSubAttackDirections[(int)AttackDirection.eeLeftward] = mcSubAttackDirectionOnLeft;
         macSubAttackDirections[(int)AttackDirection.eeUpwards] = mcSubAttackDirectionOnUp;
         macSubAttackDirections[(int)AttackDirection.eeDownwards] = mcSubAttackDirectionOnDown;
+
+        mbAnimateAttacker = pbAnimateAttacker;
+    }
+
+    //Method to assign Effect chances to attack attributes
+    public void SetEffectChances(int[] panEffectChances)
+    {
+        for(int lnEffect = 0; lnEffect < (int)SuitEffect.eeSuitEffectEnd; lnEffect++)
+        {
+            manSuitEffectPercentages[lnEffect] = panEffectChances[lnEffect];
+        }
+    }
+
+    //Effect chances getter
+    public int[] GetEffectChances()
+    {
+        return manSuitEffectPercentages;
+    }
+
+    public float GetEffectDuration(SuitEffect peSuitEffect)
+    {
+        return mafSuitEffectDurations[(int)peSuitEffect];
     }
 
     //Horizontal Offset Getter
@@ -340,6 +375,11 @@ public class AttackAttributes
     public AttackDirection GetSubAttackDirection(AttackDirection leParentAttackDirection)
     { return macSubAttackDirections[(int)leParentAttackDirection]; }
 
+    public bool GetAnimateAttacker()
+    { return mbAnimateAttacker; }
+
+    public bool GetMoveTowardsTarget()
+    { return mbMoveTowardsTarget; }
 
     //Attack Direction Setter/Getter
     public void SetDirection(AttackDirection peAttackDirection)

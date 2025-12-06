@@ -34,10 +34,13 @@ public class EnemyAttributesLoader
             3, //    Waypoint distance
             Deck.EnemyAttacks.eeChaseFreakAttack_1, //   Attack
             5, //    Attack Damage
-            0.2f //     Attack Windup
+            0.2f, //     Attack Windup
+            1,  //Size Multiplier
+            0.3f, // HitBox X
+            0.6f, // HitBox Y
+            0.02f, //HitBox Offset X
+            -0.03f //Hitbox Offset Y
             ));
-
-        macEnemyDataSet[0].SetEnemyAnimations("Animations/EnemyAnimations/FreakAnimations");
 
         //Bat
         macEnemyDataSet.Add(new EnemyAttributes(
@@ -59,8 +62,6 @@ public class EnemyAttributesLoader
             5, //    Attack Damage
             0.5f //     Attack Windup
             ));
-
-        macEnemyDataSet[1].SetEnemyAnimations("Animations/EnemyAnimations/BatAnimations");
 
         //Chick
         macEnemyDataSet.Add(new EnemyAttributes(
@@ -88,8 +89,6 @@ public class EnemyAttributesLoader
             -0.08f //Hitbox Offset Y
             ));
 
-        macEnemyDataSet[2].SetEnemyAnimations("Animations/EnemyAnimations/ChickAnimations");
-
         //Minotaur
         macEnemyDataSet.Add(new EnemyAttributes(
             "Minotaur",
@@ -116,7 +115,63 @@ public class EnemyAttributesLoader
             -0.04f //Hitbox Offset Y
             ));
 
-        macEnemyDataSet[3].SetEnemyAnimations("Animations/EnemyAnimations/MinotaurAnimations");
+        //Sprite
+        macEnemyDataSet.Add(new EnemyAttributes(
+            "Sprite",
+            50, // HealthPoints
+            0, //   ArmorPoints
+            2, //   MovementSpeed
+            6, //   JumpPower
+            1, //   Mass
+            0, //   GravityScale
+            true, //   Flying
+            7, //   Follow Distance
+            4, //   Attack Distance
+            1, //   Attack Cooldown
+            0f, // Lunge Y addition
+            4, //   Lunge Multiplier
+            3, //    Waypoint distance
+            Deck.EnemyAttacks.eeSpriteFireballAttack, //   Attack index into attributes
+            7, //    Attack Damage
+            0.5f, //     Attack Windup
+            1, // Size Multiplier
+            0.32f, //Box Collider Width
+            0.6f, //Box Collider Height
+            0.08f, //Box Collider Offset X
+            -0.14f, //Box Collider Offset Y
+            0, //Target Position X offset
+            1f, // Target Position Y Offset
+            true // Movement is Forces
+            ));
+
+        //Ghost
+        macEnemyDataSet.Add(new EnemyAttributes(
+            "Ghost",
+            70, // HealthPoints
+            0, //   ArmorPoints
+            2, //   MovementSpeed
+            6, //   JumpPower
+            1, //   Mass
+            0, //   GravityScale
+            true, //   Flying
+            7, //   Follow Distance
+            3, //   Attack Distance
+            1.5f, //   Attack Cooldown
+            0f, // Lunge Y addition
+            3, //   Lunge Multiplier
+            3, //    Waypoint distance
+            Deck.EnemyAttacks.eeGhostSlashAttack, //   Attack index into attributes
+            6, //    Attack Damage
+            0f, //     Attack Windup
+            1.7f, //Size Multiplier
+            0.32f, //Box Collider Width
+            0.6f, //Box Collider Height
+            0.08f, //Box Collider Offset X
+            -0.14f, //Box Collider Offset Y
+            0, //Target Position X offset
+            1f, // Target Position Y Offset
+            false // Movement is Forces
+            ));
     }
 
     public EnemyAttributes GetBaseEnemyAttributes(int pnEnemyId)

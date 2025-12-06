@@ -179,8 +179,9 @@ public class DeckControls : MonoBehaviour
                     //Create card description - "Ace of Hearts" etc.
                     string lcCardDescription = GetRankString((CardRank)lnRankCount) + " of " + lcSuitString + "s";
 
+                    //TODO: Adjust effect chance based on suit
                     Card lcCard = new Card(lcCardDescription, (CardSuit)lnSuitCount, CardAttackType.eePhysicalAttack, (SuitEffect)lnSuitCount,
-                        (CardRank)lnRankCount, RankEffect.eeNone, lacCardSprites[lnRankCount]);
+                        (CardRank)lnRankCount, RankEffect.eeNone, lacCardSprites[lnRankCount], 5);
 
                     FullDeck.Add(lcCard);
                 }

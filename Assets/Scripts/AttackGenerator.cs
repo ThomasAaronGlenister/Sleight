@@ -247,6 +247,11 @@ public class AttackGenerator : MonoBehaviour
         Vector3 lcAttackOrigin = mcAttackOrigin.position;
         AttackAttributes lcAttackAttributes = mcEnemyAttackAttributes.GetBaseAttackAttributes(peEnemyAttack);
 
+        if(lcAttackAttributes.GetMoveTowardsTarget())
+        {
+            peAttackDirection = AttackDirection.eeRightward;
+        }
+
         //Offsets derived from attack direction
         if (peAttackDirection == AttackDirection.eeLeftward)
         {
@@ -277,8 +282,8 @@ public class AttackGenerator : MonoBehaviour
         {
             lcAttackAttributes.SetDirection(peAttackDirection);
             lcAttackAttributes.SetAttackDamage(pnAttackDamage);
-            lcAttackComponent.SetAttributes(lcAttackAttributes, 0);
             lcAttackComponent.SetAttacker(mcAttacker.GetComponent<EnemyAI>());
+            lcAttackComponent.SetAttributes(lcAttackAttributes, lcAttackAttributes.GetAdjustedAngle());
 
             if (!lcAttackAttributes.GetDisjointed())
             {

@@ -76,6 +76,10 @@ public class EnemyAttributes
     private float mfBoxColliderXOffset = 0;
     private float mfBoxColliderYOffset = 0;
 
+    private float mnMovementTargetOffsetX = 0;
+    private float mnMovementTargetOffsetY = 0;
+
+    private bool mbForceMovement = false;
 
     //Constructor
     public EnemyAttributes(
@@ -100,7 +104,10 @@ public class EnemyAttributes
         float pfBoxColliderWidthX = 1,
         float pfBoxColliderHeightY = 1,
         float pfBoxColliderXOffset = 0,
-        float pfBoxColliderYOffset = 0)
+        float pfBoxColliderYOffset = 0,
+        float pnMovementTargetOffsetX = 0,
+        float pnMovementTargetOffsetY = 0,
+        bool pbForceMovement = false)
     {
         mcEnemyName = name;
         mnHealthPoints = pnHealthPoints;
@@ -124,6 +131,11 @@ public class EnemyAttributes
         mfBoxColliderHeightY = pfBoxColliderHeightY;
         mfBoxColliderXOffset = pfBoxColliderXOffset;
         mfBoxColliderYOffset = pfBoxColliderYOffset;
+        mnMovementTargetOffsetX = pnMovementTargetOffsetX;
+        mnMovementTargetOffsetY = pnMovementTargetOffsetY;
+        mbForceMovement = pbForceMovement;
+
+        SetEnemyAnimations("Animations/EnemyAnimations/" + mcEnemyName + "Animations");
     }
 
     public void SetEnemyAnimations(
@@ -221,5 +233,14 @@ public class EnemyAttributes
     { return mcEnemyDamageAnimationClip; }
     public AnimationClip GetEnemyIdleAnimationClip()
     { return mcEnemyIdleAnimationClip; }
+
+    public float GetMovementTargetOffsetX()
+    { return mnMovementTargetOffsetX; }
+
+    public float GetMovementTargetOffsetY()
+    { return mnMovementTargetOffsetY; }
+
+    public bool GetForceMovement()
+    { return mbForceMovement; }
 
 }

@@ -131,6 +131,7 @@ public class LevelManager : MonoBehaviour
 
                 lcChamber.PopulateWithEnemies();
 
+                lcChamber.PopulateWithTreasure();
                 if (lnNumChambers != 0)
                 {
                     //lcChamber.PopulateWithEnemies();
@@ -318,7 +319,7 @@ public class LevelManager : MonoBehaviour
 
             leChamberEntrance = lcCurrentChamber.GetConnectedChamberEntrance(peChamberExit);
 
-            Debug.Log("Exit " + mcCurrentChamber.ToString() + " Entering " + lcNextChamber.ToString() + " NextChamberSize: " + leNextChamberSize);
+            Debug.Log("Exit " + peChamberExit + " Entering " + leChamberEntrance);
 
             StartCoroutine(ChangeChamberCoroutine(leNextChamberSize, lcNextChamber));
         }

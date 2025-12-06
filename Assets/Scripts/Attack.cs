@@ -89,6 +89,11 @@ public class Attack : MonoBehaviour
 
     private SpriteRenderer mcSpriteRenderer;
 
+    //Array of time that a specific effect is applied for.
+    //Functions as both a flag indicating an effect is applied and the time it is applied for
+    float[] mafEffectAppliedTime = new float[(int)SuitEffect.eeSuitEffectEnd] 
+        {0, 0, 0, 0, 0, 0, 0};
+
     void Start()
     {
         //Set Attack Origin 
@@ -169,10 +174,12 @@ public class Attack : MonoBehaviour
 
             if (lbStruckFighter)
             {
+                int lnAttackDamage = CalculateAttackDamage(mcAttackAttributes.GetAttackDamage());
+
                 //TODO: Add KnockBack
                 if (mbPlayerAttacker)
                 {
-                    mcEnemyCollided.Damage(mcAttackAttributes.GetAttackDamage(), 2f, meAttackDirection);
+                    mcEnemyCollided.Damage(lnAttackDamage, 2f, meAttackDirection, mafEffectAppliedTime);
 
                     //TODO: Adjust attack movement 
                     if (meAttackDirection == AttackDirection.eeDownwards)
@@ -183,12 +190,12 @@ public class Attack : MonoBehaviour
                 //Enemy Attack, Damage the player
                 else
                 {
-                    mcPlayerCollided.Damage(mcAttackAttributes.GetAttackDamage(), 2f, meAttackDirection);
+                    mcPlayerCollided.Damage(lnAttackDamage, 2f, meAttackDirection);
                 }
 
                 //Trigger Damage pop up
                 GameObject lcPopUp = Instantiate(mcPopUpDamageTemplate, lcCollisionPosition, Quaternion.identity);
-                lcPopUp.GetComponent<TMP_Text>().text = mcAttackAttributes.GetAttackDamage().ToString();
+                lcPopUp.GetComponent<TMP_Text>().text = lnAttackDamage.ToString();
 
                 if (transform.position.x > lcCollision.transform.position.x)
                 {
@@ -266,9 +273,31 @@ public class Attack : MonoBehaviour
                     mnNumSubAttacks--;
                 }
 
-                EndAttack();
+
+                //If piercing is not in effect destroy attack
+                if(mafEffectAppliedTime[(int)SuitEffect.eePierce] == 0)
+                {
+                    EndAttack();
+                }
             }
         }
+    }
+
+    private int CalculateAttackDamage(int pnBaseDamage)
+    {
+        int lnDamage = pnBaseDamage;
+
+        if (mafEffectAppliedTime[(int)SuitEffect.eeBurn] > 0)
+        {
+            lnDamage += 20;
+        }
+
+        if (mafEffectAppliedTime[(int)SuitEffect.eeCrit] > 0)
+        {
+            lnDamage *= 3;
+        }
+
+        return lnDamage;
     }
 
     public void BeginAttack()
@@ -278,8 +307,6 @@ public class Attack : MonoBehaviour
         //Play Animation
         if (mbAnimationFlip || !mcAttackAttributes.GetHasAnimationFlip())
         {
-            Debug.Log("Play Attack: " + mcAttackAttributes.GetAttackAnimationString());
-
             mcAttackAnimator.Play(mcAttackAttributes.GetAttackAnimationString());
         }
         else
@@ -302,10 +329,27 @@ public class Attack : MonoBehaviour
         //Assign Attack Attributes
         mcAttackAttributes = pcAttackAttributes;
 
+        //Check for secondary effects
+        for (int lnEffects = 0; lnEffects < mcAttackAttributes.GetEffectChances().Length; lnEffects++)
+        {
+            if (mcAttackAttributes.GetEffectChances()[lnEffects] != 0)
+            {
+                // Use effect chance to check if applied debuff set to true
+                mafEffectAppliedTime[lnEffects] = mcAttackAttributes.GetEffectDuration((SuitEffect)lnEffects);
+            }
+        }
+
         //Set Direction
         meAttackDirection = mcAttackAttributes.GetDirection();
 
         float lfAttackAngleDeg = 0;
+
+        if(mcAttackAttributes.GetMoveTowardsTarget())
+        {
+            meAttackDirection = AttackDirection.eeRightward;
+
+            pfAdjustedAngle = GetAngleToClosestTarget();
+        }
 
         //Find attack end position
         switch (meAttackDirection)
@@ -372,6 +416,24 @@ public class Attack : MonoBehaviour
             transform.position.y + (mcAttackAttributes.GetTravelDistance() * Mathf.Sin(Mathf.Deg2Rad * lfAttackAngleDeg)));
     }
 
+    //Method used to check which target the attacker should point this attack to.
+    private float GetAngleToClosestTarget()
+    {
+        float lfReturnAngle = 0;
+
+        Debug.Log("GetAngleToClosestTarget ");
+
+        if (mbEnemyAttacker)
+        {
+            lfReturnAngle = mcEnemyAttacker.GetAngleToClosestTarget();
+            Debug.Log("Attack Angle = " + lfReturnAngle);
+        }
+
+        //TODO: Add function for player to auto target
+
+        return lfReturnAngle;
+    }
+
     /**
      * METHOD:: Sets the animation flip
      */
@@ -408,7 +470,7 @@ public class Attack : MonoBehaviour
             {
                 mbAttackOut = true;
 
-                if (mcPlayerAttacker != null)
+                if (mcPlayerAttacker != null && mcAttackAttributes.GetAnimateAttacker())
                 {
                     mcPlayerAttacker.SetAttackAnimationValue(meAttackAnimationType);
                 }

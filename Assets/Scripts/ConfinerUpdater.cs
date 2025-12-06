@@ -24,7 +24,6 @@ public class ConfinerUpdater : MonoBehaviour
 
     public void UpdateConfiner(ChamberSize peChamberSize)
     {
-        Debug.Log("Updated Confiner Size to " + peChamberSize);
 
         if(mcCinemachineConfiner != null)
         {

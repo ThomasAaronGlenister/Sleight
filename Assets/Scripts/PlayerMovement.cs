@@ -14,6 +14,9 @@ public class PlayerMovement : MonoBehaviour
     public int mnPlayerHealth = 40;
     public bool UpdateDisplayHealth = false;
 
+    //Amount of Money the player has
+    private int mnCoinAmount = 0;
+
     //Flag indicating if health is added or removed
     public bool HealthChange = false;
 
@@ -21,6 +24,9 @@ public class PlayerMovement : MonoBehaviour
     public GameObject mcPlayerHealthBar;
     public GameObject mcPlayerHealthNumberDisplay;
     private Animator mcPlayerHealthBarAnimator;
+
+    //Reference to the Money counter UI element
+    [SerializeField] private GameObject mcMoneyCountDisplay;
 
     public Rigidbody2D rb;
     public Animator animator;
@@ -168,6 +174,9 @@ public class PlayerMovement : MonoBehaviour
         macDirectionVectors[(int)AttackDirection.eeDownwards] = Vector2.down;
 
         InitializeExitTransitions();
+
+        //Set Coin amount UI
+        AdjustCoinCount(0);
     }
 
     // Update is called once per frame
@@ -192,7 +201,12 @@ public class PlayerMovement : MonoBehaviour
         }
 
         GroundCheck();
-        Gravity();
+
+        if(!mbIsDashing)
+        {
+            Gravity();
+        }
+     
         WallSlide();
         WallJump();
 
@@ -328,8 +342,9 @@ public class PlayerMovement : MonoBehaviour
         animator.SetTrigger("Dash");
 
         float lfDashDirection = isFacingRight ? 1f : -1f;
+        rb.gravityScale = 0;
 
-        rb.velocity = new Vector2(lfDashDirection * mfDashSpeed, rb.velocity.y);
+        rb.velocity = new Vector2(lfDashDirection * mfDashSpeed, 0);
 
         yield return new WaitForSeconds(mfDashDuration);
 
@@ -595,6 +610,18 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void AdjustCoinCount(int pnCoinAdjustment)
+    {
+        mnCoinAmount += pnCoinAdjustment;
+
+        TextMeshPro lcTextMeshPro = mcMoneyCountDisplay.GetComponent<TextMeshPro>();
+
+        if (lcTextMeshPro)
+        {
+            lcTextMeshPro.text = mnCoinAmount.ToString() + " $";
+        }
+    }
+
     private ChamberExits GetCheckExitTaken(ChamberExits leBaseExit)
     {
         ChamberExits lePlayerExit = leBaseExit;
@@ -628,6 +655,7 @@ public class PlayerMovement : MonoBehaviour
         if(macPlayerEntranceTransitions.ContainsKey((((int)peNextChamberSize * 10) + (int)peNextChamberEntrance)))
         {
             mcTransitionPosition = macPlayerEntranceTransitions[(((int)peNextChamberSize * 10) + (int)peNextChamberEntrance)];
+            Debug.Log("Moved Player to X: " + mcTransitionPosition.x + " Y: " + mcTransitionPosition.y);
         }
         else
         {
@@ -643,13 +671,16 @@ public class PlayerMovement : MonoBehaviour
     private void InitializeExitTransitions()
     {
         //Offsets for larger chambers
-        float lfWideXOffset = 7f;
+        float lfWideXOffset = 6f;
         float lfMiddleYOffset = 7f;
         float lfHighYOffset = 14f;
-        float lfDefaultRightOffset = 15f;
+        float lfDefaultRightOffset = 16f;
         float lfRightWideOffset = 22f;
 
         float lfBaseY = -2.3f;
+
+        float lfTopEntranceYOffsetLow = 6.5f;
+        float lfBottomEntranceYOffset = -4f;
 
         foreach (ChamberSize leSizes in Enum.GetValues(typeof(ChamberSize)))
         {
@@ -663,12 +694,12 @@ public class PlayerMovement : MonoBehaviour
             //Top Left Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeTopLeft),
                 new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfWideXOffset : 0), 
-                (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : 0))));
+                (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : lfTopEntranceYOffsetLow))));
 
             //Bottom Left Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeBottomLeft),
                 new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfWideXOffset : 0),
-                (lfBaseY)));
+                (lfBaseY + lfBottomEntranceYOffset)));
 
             //Right Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeRight),
@@ -683,21 +714,21 @@ public class PlayerMovement : MonoBehaviour
             //Top Right Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeTopRight),
                 new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 0),
-                (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : 0))));
+                (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : lfTopEntranceYOffsetLow))));
 
             //Bottom Right Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeBottomRight),
-                new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfWideXOffset : 0),
-                (lfBaseY)));
+                new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 0),
+                (lfBaseY + lfBottomEntranceYOffset)));
 
             //Bottom Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeBottom),
-                new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 5),
-                (lfBaseY)));
+                new Vector2(-11f + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeLong) ? lfDefaultRightOffset : 7.5f),
+                (lfBaseY + lfBottomEntranceYOffset)));
 
             //Top Entrance
             macPlayerEntranceTransitions.Add((((int)leSizes * 10) + (int)ChamberExits.eeTop),
-                new Vector2((-11f + lfWideXOffset),
+                new Vector2((-11f + 7.5f),
                 (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : lfMiddleYOffset))));
 
         }
@@ -705,11 +736,9 @@ public class PlayerMovement : MonoBehaviour
 
     IEnumerator ChangeChamberCoroutine(ChamberSize peNextChamberSize, ChamberExits peNextChamberEntrance, bool pbTopExitTaken)
     {
+        //Freeze movement when player hits transition point
         rb.velocity = new Vector2(0, 0);
-        rb.Sleep();
-
-        //Restict Player Movement
-        mbMovementProhibited = true;
+        rb.constraints = RigidbodyConstraints2D.FreezePosition | RigidbodyConstraints2D.FreezeRotation;
 
         //Wait for seconds
         yield return new WaitForSeconds(0.5f);
@@ -718,20 +747,23 @@ public class PlayerMovement : MonoBehaviour
         transform.position = CheckExitTransition(peNextChamberSize, peNextChamberEntrance);
 
         //Wait for seconds
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(0.5f);
 
-        rb.WakeUp();
+        //resume control
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
         //If player is jumping up through a top exit, apply extra force on entrance
         if (pbTopExitTaken)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpPower * 2);
+            rb.velocity = new Vector2(rb.velocity.x, jumpPower * 1.2f);
+        }
+        else
+        {
+            rb.velocity = new Vector2(rb.velocity.x, -0.1f);
         }
 
-        //resume control
-        mbMovementProhibited = false;
 
-        meCurrentChamberSize = peNextChamberSize;
+            meCurrentChamberSize = peNextChamberSize;
 
         mbChamberTransitionComplete = true;
     }

@@ -19,6 +19,9 @@ public class EnemyAI : MonoBehaviour
     //Target component for the path finding check
     public Transform mcTarget;
 
+    //offset to the target this enemy should be moving towards
+    public Vector3 mcTargetPositionOffset = Vector2.zero;
+
     //Animation controller
     public Animator mcAnimator;
 
@@ -64,6 +67,12 @@ public class EnemyAI : MonoBehaviour
     // Animation overrides
     private AnimatorOverrideController mcAnimationOverrideController;
 
+    //Set of durations suit effects are applied for
+    float[] mafEffectAppliedTime = new float[(int)SuitEffect.eeSuitEffectEnd]
+    {0, 0, 0, 0, 0, 0, 0};
+
+    List<GameObject> macEffectIcons = new List<GameObject>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -78,6 +87,14 @@ public class EnemyAI : MonoBehaviour
 
         meUpdateEnemyState = EnemyState.eeEnemyIdle;
 
+        //Get access to effect icons
+        if(GameObject.Find("EffectArc"))
+        {
+            foreach (Transform child in GameObject.Find("EffectArc").transform)
+            {
+                macEffectIcons.Add(child.gameObject);
+            }
+        }
 
         InvokeRepeating("UpdatePath", 0f, 0.5f);
 
@@ -91,6 +108,9 @@ public class EnemyAI : MonoBehaviour
         mcEnemyAttributes = pcEnemyAttributes;
 
         transform.localScale *= mcEnemyAttributes.GetSizeMultiplier();
+
+        mcTargetPositionOffset.x = pcEnemyAttributes.GetMovementTargetOffsetX();
+        mcTargetPositionOffset.y = pcEnemyAttributes.GetMovementTargetOffsetY();
 
         //Adjust box collider size based on sprite size
         GetComponent<BoxCollider2D>().size = pcEnemyAttributes.GetBoxColliderSize();
@@ -152,15 +172,49 @@ public class EnemyAI : MonoBehaviour
     }
 
     //METHOD:: Receives Damage input to the enemy
-    public void Damage(int pnDamageAmount, float pnKnockBack, AttackDirection peAttackDirection)
+    public void Damage(int pnDamageAmount, float pnKnockBack, AttackDirection peAttackDirection, float[] pafEffects)
     {
         mnHealthPoints -= pnDamageAmount;
-
-        StartCoroutine(TakeDamage());
 
         if (mnHealthPoints <= 0)
         {
             StartCoroutine(Defeated());
+        }
+        else
+        {
+            SetSuitEffects(pafEffects);
+
+            StartCoroutine(TakeDamage());
+        }
+    }
+
+    //Method to set Attack Effect durations on damage
+    private void SetSuitEffects(float[] pafEffects)
+    {
+        for (int i = 0; i < pafEffects.Length; i++)
+        {
+            //If added effect time applied and current effect is not active
+            if (pafEffects[i] != 0 && mafEffectAppliedTime[i] <= 0)
+            {
+                mafEffectAppliedTime[i] = pafEffects[i];
+                macEffectIcons[i].SetActive(true);
+            }
+        }
+    }
+
+    private void CheckSuitEffects()
+    {
+        for (int i = 0; i < mafEffectAppliedTime.Length; i++)
+        {
+            if(mafEffectAppliedTime[i] > 0)
+            {
+                mafEffectAppliedTime[i] -= Time.deltaTime;
+
+                if(mafEffectAppliedTime[i] <= 0)
+                {
+                    macEffectIcons[i].SetActive(false);
+                }
+            }
         }
     }
 
@@ -170,7 +224,10 @@ public class EnemyAI : MonoBehaviour
 
         mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyWindup);
 
-        mcRigidBody.velocity = Vector3.zero;
+        if(mcEnemyAttributes.GetEnemyAttackWindupTime() != 0)
+        {
+            mcRigidBody.velocity = Vector3.zero;
+        }
 
         yield return new WaitForSeconds(mcEnemyAttributes.GetEnemyAttackWindupTime());
 
@@ -178,15 +235,15 @@ public class EnemyAI : MonoBehaviour
 
         yield return null;
 
-        //Pass attack card set along with direction to attack generator
-        mcAttackGenerator.GenerateAttack(mcEnemyAttributes.GetEnemyAttack(), mcEnemyAttributes.GetEnemyAttackDamage(),
-            GetAttackDirection());
-
         //Direction is Waypoint plus the current enemy position
         Vector2 lcDirection = (mcTarget.position - transform.position).normalized;
         lcDirection.y += mcEnemyAttributes.GetAttackLungeVertical();
 
         mcRigidBody.AddForce(lcDirection * mcEnemyAttributes.GetAttackLungeMultiplier(), ForceMode2D.Impulse);
+
+        //Pass attack card set along with direction to attack generator
+        mcAttackGenerator.GenerateAttack(mcEnemyAttributes.GetEnemyAttack(), mcEnemyAttributes.GetEnemyAttackDamage(),
+            GetAttackDirection());
 
         mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyIdle);
 
@@ -203,7 +260,7 @@ public class EnemyAI : MonoBehaviour
         {
             leAttackDirection = AttackDirection.eeDownwards;
         }
-        else if(mcRigidBody.position.y + 2 < mcTarget.position.y)
+        else if (mcRigidBody.position.y + 2 < mcTarget.position.y)
         {
             leAttackDirection = AttackDirection.eeUpwards;
         }
@@ -217,6 +274,9 @@ public class EnemyAI : MonoBehaviour
     private IEnumerator TakeDamage()
     {
         meUpdateEnemyState = EnemyState.eeEnemyKnockback;
+
+        StopCoroutine(Attack());
+        mfAttackCoolDownElapsedTime = 0;
 
         mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyKnockback);
         mcRigidBody.velocity = Vector3.zero;
@@ -265,7 +325,7 @@ public class EnemyAI : MonoBehaviour
     {
         if(mcSeeker.IsDone())
         {
-            mcSeeker.StartPath(mcRigidBody.position, mcTarget.position, OnPathComplete);
+            mcSeeker.StartPath(mcRigidBody.position, mcTarget.position + mcTargetPositionOffset, OnPathComplete);
         }
     }
 
@@ -281,6 +341,8 @@ public class EnemyAI : MonoBehaviour
         mcAnimator.SetBool("Grounded", mbIsGrounded || mcEnemyAttributes.GetFlyingEnemy());
 
         mfDistanceToTarget = Vector2.Distance(mcRigidBody.position, mcTarget.position);
+
+        CheckSuitEffects();
 
         //Check if enemy is facing correct way
         Flip();
@@ -333,10 +395,16 @@ public class EnemyAI : MonoBehaviour
             }
             else
             {
-                mcRigidBody.velocity = new Vector2(((lcForce.x > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed(), 
-                    ((lcForce.y > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed());
+                if(mcEnemyAttributes.GetForceMovement())
+                {
+                    mcRigidBody.AddForce(lcForce);
+                }
+                else
+                {
+                    mcRigidBody.velocity = new Vector2(((lcForce.x > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed(),
+                        ((lcForce.y > 0f) ? 1 : -1) * mcEnemyAttributes.GetMovementSpeed());
+                }
 
-                //mcRigidBody.AddForce(lcForce);
             }
         }
 
@@ -378,7 +446,7 @@ public class EnemyAI : MonoBehaviour
     /*
      * METHOD: checks if enemy is within path point range to go aggro
      */
-    bool WithinAggroRange()
+    private bool WithinAggroRange()
     {
         bool lbWithinRange = false;
         if(mcPath != null && mcPath.vectorPath.Count <= mcEnemyAttributes.GetFollowDistance())
@@ -387,5 +455,18 @@ public class EnemyAI : MonoBehaviour
         }
 
         return lbWithinRange;
+    }
+
+    //Gets angle to closest target
+    public float GetAngleToClosestTarget()
+    {
+        float lfAttackAngle = 0;
+
+        if(mcTarget)
+        {
+            lfAttackAngle = Mathf.Atan2(mcTarget.position.y - transform.position.y, mcTarget.position.x - transform.position.x) * Mathf.Rad2Deg;
+        }
+        
+        return lfAttackAngle;
     }
 }

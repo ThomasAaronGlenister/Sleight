@@ -117,7 +117,77 @@ public class EnemyAttackAttributes
             0.4f
             ));
 
+        //Sprite Fireball attack
+        macAttacksDataSet.Add(new AttackAttributes(
+            0, // horizontal Offset
+            0, // Vertical Offset
+            0f, // Side Attack Offset
+            0f, // Up/Down Attack Offset
+            1f, // Size Multiplier
+            true, // Disjointed
+            false, // revolve around
+            7, // Travel Distance
+            1f, // Travel Time
+            0, //Force
+            AttackMovementType.eeFixedDistance,
+            false, // Has Animation Flip
+            (int)PlayerAttackAnimation.eeBasic, // Player attack animation to play
+            false, // Single animation lifetime
+            "PurpleFireballAttack", // Attack Animation
+            CapsuleDirection2D.Horizontal, // Capsule Direction
+            true, // Partical Trail Enabled
+            Color.magenta, // Partical Trail Color
+            0,
+            false,
+            false,
+            false,
+            0,
+            false,
+            0,
+            1,
+            1,
+            1,
+            0,
+            false,
+            AttackDirection.eeRightward,
+            AttackDirection.eeRightward,
+            AttackDirection.eeRightward,
+            AttackDirection.eeRightward,
+            true
+            ));
 
+        //Ghost Slash Attack 
+        macAttacksDataSet.Add(new AttackAttributes(
+            0, // Horizontal Offset
+            0, // Vertical Offset
+            0.7f, // Side attack offset
+            0.5f, // Up/Down attack offset
+            3f, // Size Multiplier
+            false, // Disjointed flag
+            false, // Revolve around flag
+            0, // Travel Distance
+            0, //Life Time
+            0, // Force
+            AttackMovementType.eeFollowPlayer,
+            false, // reverse animation
+            0, // Attacker Animation
+            true, //Single animation lifetime
+            "ChaseFreakAttack_1", //Attack string
+            CapsuleDirection2D.Vertical, // Capsule direction
+            false, // Partical Trail
+            Color.white, // Particle Trail color
+            0,
+            false,
+            false,
+            false,
+            0,
+            false,
+            0,
+            1,
+            1,
+            1,
+            0.3f
+            ));
 
     }
 
