@@ -130,7 +130,11 @@ namespace Deck
         eeBasic = 0,
         eeHeavy = 1, 
         eeRanged = 2,
-        eeSpread = 3
+        eeSlowRanged = 3,
+        eeMagicBlast = 4,
+        eeSlowMagicBlast = 5,
+        eeArcSwipe = 6,
+        eeSpread = 7
     }
 
     public enum AttackAnimationType
@@ -144,7 +148,19 @@ namespace Deck
         eeRangedSideAttack = 6,
         eeRangedDownAttack = 7,
         eeRangedUpAttack = 8,
-        eeSpreadAttack = 9
+        eeSlowRangedSideAttack = 9,
+        eeSlowRangedDownAttack = 10,
+        eeSlowRangedUpAttack = 11,
+        eeMagicBlastSideAttack = 12,
+        eeMagicBlastDownAttack = 13,
+        eeMagicBlastUpAttack = 14,
+        eeSlowMagicBlastSideAttack = 15,
+        eeSlowMagicBlastDownAttack = 16,
+        eeSlowMagicBlastUpAttack = 17,
+        eeArcSwipeSideAttack = 18,
+        eeArcSwipeDownAttack = 19,
+        eeArcSwipeUpAttack = 20,
+        eeSpreadAttack = 21
     }
 
     public enum EnemyID
@@ -157,11 +173,13 @@ namespace Deck
     {
         eeEnemyIdle = 0,
         eeEnemyAttack = 1,
-        eeEnemyMove = 2,
-        eeEnemyJump = 3,
-        eeEnemyWindup = 4,
-        eeEnemyStagger= 5,
-        eeEnemyKnockback = 6
+        eeEnemyAttack2 = 2,
+        eeEnemyAttack3 = 3,
+        eeEnemyMove = 4,
+        eeEnemyJump = 5,
+        eeEnemyWait = 6,
+        eeEnemyStagger= 7,
+        eeEnemyKnockback = 8
     }
 
     public enum EnemyAttacks

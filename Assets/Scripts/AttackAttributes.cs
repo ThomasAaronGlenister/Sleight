@@ -4,6 +4,9 @@ using Deck;
 
 public class AttackAttributes
 {
+    //Name of the attack
+    private String mcAttackName = "";
+
     //Attack Damage
     private int mnAttackDamage = 0;
 
@@ -42,6 +45,9 @@ public class AttackAttributes
 
     //Impulse force applied if attack movement type is Force
     private float mfMovementForce = 0f;
+
+    //Force applied by the attack
+    private float mfKnockBack = 0f;
 
     //Movement type of the attack
     private AttackMovementType meAttackMovement = AttackMovementType.eeNoMovement;
@@ -116,6 +122,56 @@ public class AttackAttributes
     //Flag indicating this attack should cause an animation on the attacker to play
     private bool mbAnimateAttacker = true;
 
+    private Color mcEffectColor = Color.white;
+
+    //Sets whether this attacks hitbox is active
+    private bool mbHasHitbox = true;
+
+    //Sets whether this attacks hitbox is purely used as a trigger
+    private bool mbHitBoxIsTrigger = false;
+
+    /********************************ENEMY ATTACK************************************/
+    //Attack values used for Enemy AI to use certain attacks
+
+    //Flag whether this attack is an enemy attack
+    private bool mbEnemyAttack = false;
+
+    //Space Enemy has between ground to perform attack
+    private float mfGroundSpace;
+
+    //Space Enemy has between walls to perform attack
+    private float mfWallSpace;
+
+    //Horizontal area the target must be within to perform attack
+    private float mfTargetMinRangeX;
+    private float mfTargetMaxRangeX;
+
+    //Vertical area the target must be within to perform attack
+    private float mfTargetMinRangeY;
+    private float mfTargetMaxRangeY;
+
+    //Cool down time taken after attack is performed
+    private float mfCoolDownPeriod;
+
+    //Floating point time frame for next time this attack can be performed
+    private float mfCoolDownTime;
+
+    /** 
+     * Integer value determining chance for this attack to be performed over others.
+     * If multiple attacks fall within a trigger then priority values will be added
+     * and random integer will be generated within the range to determine which attack will play
+    **/
+    private int mnChanceValue;
+
+    //Id value set to this attack when it is added to list of attacks
+    private int mnEnemyAttackId = 1;
+
+    /*************************************************************************/
+
+
+    //List of sub attacks this attack can create
+    private AttackAttributes lcSubAttack;
+
     /**
      * METHOD: Constructor for Attack Settings.
      * Horizontal Offset, 
@@ -129,6 +185,7 @@ public class AttackAttributes
      * Attack Animation String
      */
     public AttackAttributes(
+        string pcAttackName,
         float pfHorzOffset,
         float pfVertOffset,
         float pfSideAttackOffset,
@@ -164,9 +221,13 @@ public class AttackAttributes
         AttackDirection pcSubAttackDirectionOnUp = AttackDirection.eeUpwards,
         AttackDirection pcSubAttackDirectionOnDown = AttackDirection.eeDownwards,
         bool pbMoveTowardsTarget = false,
-        bool pbAnimateAttacker = true
+        bool pbAnimateAttacker = true,
+        float pfKnockBack = 0,
+        bool pbHasHitbox = true,
+        bool pbHitBoxIsTrigger = false
         )
     {
+        mcAttackName = pcAttackName;
         mfHorizontalOffset = pfHorzOffset;
         mfVerticalOffset = pfVertOffset;
         mfSideAttackOffset = pfSideAttackOffset;
@@ -218,6 +279,70 @@ public class AttackAttributes
         macSubAttackDirections[(int)AttackDirection.eeDownwards] = mcSubAttackDirectionOnDown;
 
         mbAnimateAttacker = pbAnimateAttacker;
+        mfKnockBack = pfKnockBack;
+        mbHasHitbox = pbHasHitbox;
+        mbHitBoxIsTrigger = pbHitBoxIsTrigger;
+    }
+
+    //Sets the attack range and chance values for enemy attacks
+    public void SetEnemyAttackValues(
+        float pfGroundSpace = 0,
+        float pfWallSpace = 0,
+        float pfTargetMinRangeX = -20,
+        float pfTargetMaxRangeX = 20,
+        float pfTargetMinRangeY = -20,
+        float pfTargetMaxRangeY = 20,
+        float pfCoolDownPeriod = 1,
+        int pnChanceValue = 1,
+        float pfAttackCooldown = 0)
+    {
+        mbEnemyAttack = true;
+        mfGroundSpace = pfGroundSpace;
+        mfWallSpace = pfWallSpace;
+        mfTargetMinRangeX = pfTargetMinRangeX;
+        mfTargetMaxRangeX = pfTargetMaxRangeX;
+        mfTargetMinRangeY = pfTargetMinRangeY;
+        mfTargetMaxRangeY = pfTargetMaxRangeY;
+        mfCoolDownPeriod = pfCoolDownPeriod;   
+        mnChanceValue = pnChanceValue;
+        mfCoolDownTime = pfAttackCooldown;
+    }
+
+    //Adds a sub attack to this attack
+    public void AddSubAttack(AttackAttributes lcSubAttackAttributes)
+    {
+        lcSubAttack = lcSubAttackAttributes;
+    }
+
+    public AttackAttributes GetSubAttack()
+    {
+        return lcSubAttack;
+    }
+
+    //Enemy attack ID setter
+    public void SetEnemyAttackId(int pnAttackId)
+    {
+        mnEnemyAttackId = pnAttackId;
+    }
+
+    //Enemy attack ID getter
+    public int GetEnemyAttackId()
+    {
+        return mnEnemyAttackId;
+    }
+
+    public bool WithinAttackBounds(float pfGroundDistance, float pfWallDistance, 
+        float pfTargetPositionX, float pfTargetPositionY)
+    {
+
+        bool lbWithinBounds = false;
+        if (pfGroundDistance >= mfGroundSpace && pfWallDistance >= mfWallSpace &&
+            pfTargetPositionX >= mfTargetMinRangeX && pfTargetPositionX <= mfTargetMaxRangeX &&
+            pfTargetPositionY >= mfTargetMinRangeY && pfTargetPositionY <= mfTargetMaxRangeY)
+        {
+            lbWithinBounds = true;
+        }
+        return lbWithinBounds;
     }
 
     //Method to assign Effect chances to attack attributes
@@ -239,6 +364,10 @@ public class AttackAttributes
     {
         return mafSuitEffectDurations[(int)peSuitEffect];
     }
+
+    // Attack Name getter
+    public String GetAttackName() 
+    { return mcAttackName; } 
 
     //Horizontal Offset Getter
     public float GetHorizontalOffset()
@@ -378,6 +507,14 @@ public class AttackAttributes
     public bool GetAnimateAttacker()
     { return mbAnimateAttacker; }
 
+    public bool GetHasHitbox()
+        { return mbHasHitbox; }
+
+    public bool GetHitBoxIsTrigger()
+    {
+        return mbHitBoxIsTrigger;
+    }
+
     public bool GetMoveTowardsTarget()
     { return mbMoveTowardsTarget; }
 
@@ -386,4 +523,42 @@ public class AttackAttributes
     { meAttackDirection = peAttackDirection; }
     public AttackDirection GetDirection()
     { return meAttackDirection; }
+
+    //Ground Space getter
+    public float GetGroundSpace()
+    { return mfGroundSpace; }
+
+    //Wall Space getter
+    public float GetWallSpace()
+    { return mfWallSpace; }
+
+    //Target Min range x getter
+    public float GetTargetMinRangeX()
+    { return mfTargetMinRangeX; }
+
+    //Target Max range x getter
+    public float GetTargetMaxRangeX()
+    { return mfTargetMaxRangeX; }
+
+    //Target Min range Y getter
+    public float GetTargetMinRangeY()
+    { return mfTargetMinRangeY; }
+
+    //Target Max range Y getter
+    public float GetTargetMaxRangeY()
+    { return mfTargetMaxRangeY; }
+
+    //Chance value getter
+    public int GetChanceValue()
+    { return mnChanceValue; }
+
+    //Attack cooldown getter
+    public float GetAttackCooldownTime()
+    {
+        return mfCoolDownTime;
+    }
+
+    //Knock back getter
+    public float GetKnockBack()
+    { return mfKnockBack; }
 }

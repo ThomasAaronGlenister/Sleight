@@ -10,7 +10,9 @@ using static UnityEditor.FilePathAttribute;
 public class Chamber : MonoBehaviour
 {
     //Size of the chamber, between small, long, tall, and large
-    private ChamberSize meChamberSize = ChamberSize.eeDefault;
+    public ChamberSize meChamberSize = ChamberSize.eeDefault;
+
+    private Vector2 mcChamberDimensions = Vector2.zero;
 
     //Number of exit points in the chamber
     public int mnNumExits = 0;
@@ -24,9 +26,12 @@ public class Chamber : MonoBehaviour
     //Tilemaps
     Tilemap mcChamberWallsTilemap;
     Tilemap mcChamberGroundTilemap;
-    Tilemap mcChamberDarkendTilemap;
     Tilemap mcEnemySpawnPointTilemap;
     Tilemap mcTreasureSpawnPointTilemap;
+
+    Tilemap mcChamberPassThroughPlatformsTilemap;
+
+    PlatformEffector2D mcPassThroughPlatformEffector;
 
     //List of enemy spawn points
     List<Vector2> macEnemySpawnPoints = new List<Vector2>();
@@ -43,7 +48,9 @@ public class Chamber : MonoBehaviour
         = new Dictionary<ChamberExits, GameObject>();
 
     //List of available exits based on this chambers size
-    List<ChamberExits> maeAvailableExits = new List<ChamberExits>();
+    public List<ChamberExits> maeSetAvailableExits = new List<ChamberExits>();
+
+    private List<ChamberExits> maeAvailableExits;
 
     //List of X,Y coordinates this chamber covers
     Dictionary<ChamberExits, UnityEngine.Vector2> macChamberGrid
@@ -56,7 +63,7 @@ public class Chamber : MonoBehaviour
     List<GameObject> macMapTiles = new List<GameObject>();
 
     //List of Darkened Tile map sets
-    private GameObject[] macDarkenTilemaps = new GameObject[(int)ChamberExits.eeNone];
+    private GameObject[] macExits = new GameObject[(int)ChamberExits.eeNone];
 
     //EnemyPrefab
     public GameObject mcEnemyPrefab;
@@ -65,8 +72,13 @@ public class Chamber : MonoBehaviour
     public GameObject mcTreasurePrefab;
 
     //Enemy Attributes sets
-    EnemyAttributesLoader mcEnemyAttributesLoader;
+    EnemyAttributesSet mcEnemyAttributesLoader;
 
+    private Vector2 mcChamberPosition; 
+
+    public GameObject mcChamberCameraCollider;
+
+    private GameObject mcChamberCameraColliderCopy;
 
     /*
      * METHOD: Initialize Chamber attributes.
@@ -95,35 +107,42 @@ public class Chamber : MonoBehaviour
             Debug.Log("Chamber Does not include ground component");
         }
 
-        //Get Dark Cover tile sets
-        Transform lcDarkTileSets = transform.Find("DarkTileCovers");
-        if (lcDarkTileSets != null)
+        Transform lcPassThroughPlatformsTransform = transform.Find("PassThroughPlatforms");
+
+        if (lcPassThroughPlatformsTransform != null)
         {
-            int lnDarkTileSetIndex = 0;
+            mcChamberPassThroughPlatformsTilemap = lcPassThroughPlatformsTransform.GetComponent<Tilemap>();
+            mcPassThroughPlatformEffector = lcPassThroughPlatformsTransform.GetComponent<PlatformEffector2D>();
+        }
+        else
+        {
+            Debug.Log("Chamber Does not include pass through platforms component");
+        }
+
+        //Get Exit Cover tile sets
+        Transform lcExitTileSets = transform.Find("Exits");
+        if (lcExitTileSets != null)
+        {
+            int lnExitIndex = 0;
 
             //Tile covers are ordered in the same as the chamber exits enumeration
-            foreach(Transform child in lcDarkTileSets)
+            foreach (Transform child in lcExitTileSets)
             {
-                macDarkenTilemaps[lnDarkTileSetIndex] = child.gameObject;
-                lnDarkTileSetIndex++;
+                macExits[lnExitIndex] = child.gameObject;
+                macExits[lnExitIndex].SetActive(false);
+                lnExitIndex++;
             }
         }
         else
         {
-            Debug.Log("DarkTileCovers not found");
+            Debug.Log("ExitTiles not found");
         }
 
+        mcChamberCameraColliderCopy = Instantiate(mcChamberCameraCollider, mcChamberCameraCollider.transform.position, mcChamberCameraCollider.transform.rotation);
 
+        transform.gameObject.SetActive(true);
 
-            transform.gameObject.SetActive(true);
-
-        //Determine Enemy spawn points
-        DetectEnemySpawnPoints();
-
-        //Determine Treasure spawn points
-        DetectTreasureSpawnPoints();
-
-        if(!mbStartRoom)
+        if (!mbStartRoom)
         {
             transform.gameObject.SetActive(false);
         }
@@ -131,40 +150,75 @@ public class Chamber : MonoBehaviour
         //Set chamber size based on tag
         //Start Room only has left/right exit
         if (mbStartRoom)
-        {
-            mnPotentialRooms = 2;
-
+        { 
             macChamberGrid[ChamberExits.eeRight] = new Vector2(0, 0);
             macChamberGrid[ChamberExits.eeLeft] = new Vector2(0, 0);
         }
-        else if (gameObject.CompareTag("LargeRoom"))
+
+        switch (meChamberSize)
         {
-            meChamberSize = ChamberSize.eeLarge;
-            mnPotentialRooms = 8;
-        }
-        else if (gameObject.CompareTag("LongRoom"))
-        {
-            meChamberSize = ChamberSize.eeLong;
-            mnPotentialRooms = 6;
-        }
-        else if (gameObject.CompareTag("TallRoom"))
-        {
-            meChamberSize = ChamberSize.eeTall;
-            mnPotentialRooms = 6;
-        }
-        else if (gameObject.CompareTag("DefaultRoom"))
-        {
-            meChamberSize = ChamberSize.eeDefault;
-            mnPotentialRooms = 4;
+            case ChamberSize.eeDefault:
+                mcChamberDimensions = new Vector2(10, 7);
+                break;
+            case ChamberSize.eeLong:
+                mcChamberDimensions = new Vector2(20, 7);
+                break;
+            case ChamberSize.eeTall:
+                mcChamberDimensions = new Vector2(10, 14);
+                break;
+            case ChamberSize.eeLarge:
+                mcChamberDimensions = new Vector2(20, 14);
+                break;
         }
 
-        //Set list of available exits
-        InitializeAvailableExits();
+
+        mnPotentialRooms = maeSetAvailableExits.Count;
+
+        maeAvailableExits = new List<ChamberExits>(maeSetAvailableExits);
 
         //Add list of wall tiles that may be converted to exits
         GenerateExitTileLists();
+    }
 
-        mcEnemyAttributesLoader = new EnemyAttributesLoader();
+    public void RepositionChamber(Vector2 pcNewPosition)
+    {
+        this.transform.position = pcNewPosition;
+
+        //Determine Enemy spawn points
+        DetectEnemySpawnPoints();
+    }
+
+    public GameObject GetCameraCollider()
+    {
+        return mcChamberCameraColliderCopy;
+    }
+
+    private void OnTriggerEnter2D(Collider2D pcCollision)
+    {
+        if (pcCollision.name == "Player")
+        {
+            Debug.Log("Player Entered Chamber: " + transform.name);
+
+            //Set Players current chamber to this chamber
+            pcCollision.GetComponent<PlayerMovement>().ChangeChamber(this);
+        }
+    }
+
+    public void PassThroughPlatform()
+    {
+        StartCoroutine(PassThroughPlatformCoroutine());
+    }
+
+    IEnumerator PassThroughPlatformCoroutine()
+    {
+        int BaseMask = mcPassThroughPlatformEffector.colliderMask;
+
+        //Mask off player so they can drop from platforms
+        mcPassThroughPlatformEffector.colliderMask = 258047;
+        
+        //Wait and allow player to use platform again
+        yield return new WaitForSeconds(0.5f);
+        mcPassThroughPlatformEffector.colliderMask = BaseMask;
     }
 
     //Method to determine if the chamber has any designated enemy spawn points
@@ -192,6 +246,7 @@ public class Chamber : MonoBehaviour
                     Vector3 location = mcEnemySpawnPointTilemap.CellToWorld(localLocation);
                     if (mcEnemySpawnPointTilemap.HasTile(localLocation))
                     {
+                        location.y += 0.3f;
                         macEnemySpawnPoints.Add(location);
                         Debug.Log("EnemySpawnPoint: X: " + location.x + " Y: " + location.y);
                     }
@@ -233,37 +288,18 @@ public class Chamber : MonoBehaviour
         }
     }
 
-    //Creates Enemies in the chamber
-    public void PopulateWithEnemies()
+    //Returns the list of spawn points for enemies in this chamber
+    public List<Vector2> GetEnemySpawnPoints()
     {
-        //If any designated spawn points exist in this chamber
-        if(macEnemySpawnPoints.Count != 0)
-        {
-            Vector2 lcSpawnPoint = macEnemySpawnPoints[UnityEngine.Random.Range(0, macEnemySpawnPoints.Count)];
-
-            int lnEnemyId = UnityEngine.Random.Range(0, 6);
-
-            GameObject lcEnemy = Instantiate(mcEnemyPrefab, lcSpawnPoint, Quaternion.identity);
-            lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(lnEnemyId));
-            lcEnemy.transform.SetParent(this.transform);
-
-            macEnemySpawnPoints.Remove(lcSpawnPoint);
-        }
-
-        /*
-        GameObject lcEnemy2 = Instantiate(mcEnemyPrefab, new Vector3(2, 0, 0), Quaternion.identity);
-        lcEnemy2.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(0));
-        lcEnemy2.transform.SetParent(this.transform);
-
-        GameObject lcEnemy3 = Instantiate(mcEnemyPrefab, new Vector3(-5, 0, 0), Quaternion.identity);
-        lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(0));
-        lcEnemy.transform.SetParent(this.transform);
-        */
+        return macEnemySpawnPoints;
     }
 
     //Creates treasure chests in the chamber
     public void PopulateWithTreasure()
     {
+        //Determine Treasure spawn points
+        DetectTreasureSpawnPoints();
+
         //If any designated spawn points exist in this chamber
         if (macTreasureSpawnPoints.Count != 0)
         {
@@ -277,58 +313,6 @@ public class Chamber : MonoBehaviour
             macTreasureSpawnPoints.Remove(lcSpawnPoint);
         }
     }
-
-    /**
-     * METHOD: Sets the list of available exits to this chamber
-     */
-    private void InitializeAvailableExits()
-    {
-        //Start chamber only has left and right exits
-        if(mbStartRoom)
-        {
-            maeAvailableExits.Add(ChamberExits.eeLeft);
-            maeAvailableExits.Add(ChamberExits.eeRight);
-        }
-        else
-        {
-            switch (meChamberSize)
-            {
-                case ChamberSize.eeLarge:
-                    maeAvailableExits.Add(ChamberExits.eeLeft);
-                    maeAvailableExits.Add(ChamberExits.eeRight);
-                    maeAvailableExits.Add(ChamberExits.eeTopLeft);
-                    maeAvailableExits.Add(ChamberExits.eeTopRight);
-                    maeAvailableExits.Add(ChamberExits.eeMiddleLeft);
-                    maeAvailableExits.Add(ChamberExits.eeMiddleRight);
-                    maeAvailableExits.Add(ChamberExits.eeBottomLeft);
-                    maeAvailableExits.Add(ChamberExits.eeBottomRight);
-                    break;
-                case ChamberSize.eeLong:
-                    maeAvailableExits.Add(ChamberExits.eeLeft);
-                    maeAvailableExits.Add(ChamberExits.eeRight);
-                    maeAvailableExits.Add(ChamberExits.eeTopLeft);
-                    maeAvailableExits.Add(ChamberExits.eeTopRight);
-                    maeAvailableExits.Add(ChamberExits.eeBottomLeft);
-                    maeAvailableExits.Add(ChamberExits.eeBottomRight);
-                    break;
-                case ChamberSize.eeTall:
-                    maeAvailableExits.Add(ChamberExits.eeLeft);
-                    maeAvailableExits.Add(ChamberExits.eeRight);
-                    maeAvailableExits.Add(ChamberExits.eeTop);
-                    maeAvailableExits.Add(ChamberExits.eeBottom);
-                    maeAvailableExits.Add(ChamberExits.eeMiddleLeft);
-                    maeAvailableExits.Add(ChamberExits.eeMiddleRight);
-                    break;
-                case ChamberSize.eeDefault:
-                    maeAvailableExits.Add(ChamberExits.eeLeft);
-                    maeAvailableExits.Add(ChamberExits.eeRight);
-                    maeAvailableExits.Add(ChamberExits.eeTop);
-                    maeAvailableExits.Add(ChamberExits.eeBottom);
-                    break;
-
-            }
-        }
-    }// END InitializeAvailableExits
 
     /*
      * METHOD: Returns the number of rooms this chamber may have
@@ -356,7 +340,7 @@ public class Chamber : MonoBehaviour
             macChamberGraph.Add(peChamberExit, pcConnectedChamber);
 
             //Clear Covers for exits
-            macDarkenTilemaps[(int)peChamberExit].SetActive(false);
+            macExits[(int)peChamberExit].SetActive(true);
 
             //clear the exit tiles
             foreach (Vector2 lcExit in macChamberExitDictionary[peChamberExit])
@@ -534,17 +518,31 @@ public class Chamber : MonoBehaviour
                     }
                     break;
                 case ChamberExits.eeLeft:
-                    macChamberExitDictionary[leExits].Add(new Vector2(-10, -1));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-10, -2));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-10, -3));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-10, -4));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-11, -1));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-11, -2));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-11, -3));
-                    macChamberExitDictionary[leExits].Add(new Vector2(-11, -4));
+                    if (meChamberSize == ChamberSize.eeDefault || meChamberSize == ChamberSize.eeTall)
+                    {
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, -1));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, -2));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, -3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, -4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, -1));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, -2));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, -3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, -4));
+                    }
+                    else
+                    {
+                        macChamberExitDictionary[leExits].Add(new Vector2(-10, -1));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-10, -2));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-10, -3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-10, -4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-11, -1));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-11, -2));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-11, -3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-11, -4));
+                    }
                     break;
                 case ChamberExits.eeMiddleLeft:
-                    if (meChamberSize == ChamberSize.eeLarge || meChamberSize == ChamberSize.eeTall)
+                    if (meChamberSize == ChamberSize.eeLarge)
                     {
                         macChamberExitDictionary[leExits].Add(new Vector2(-10, 3));
                         macChamberExitDictionary[leExits].Add(new Vector2(-10, 4));
@@ -555,55 +553,66 @@ public class Chamber : MonoBehaviour
                         macChamberExitDictionary[leExits].Add(new Vector2(-11, 5));
                         macChamberExitDictionary[leExits].Add(new Vector2(-11, 6));
                     }
+                    else if(meChamberSize == ChamberSize.eeTall)
+                    {
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, 3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, 4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, 5));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-8, 6));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, 3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, 4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, 5));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-9, 6));
+                    }
                     break;
                 case ChamberExits.eeTopLeft:
                     if (meChamberSize == ChamberSize.eeLarge || meChamberSize == ChamberSize.eeLong)
                     {
+                        macChamberExitDictionary[leExits].Add(new Vector2(-7, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-6, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-5, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-4, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-7, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-6, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-5, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-4, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-7, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-6, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-5, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-4, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                     }
                     break;
                 case ChamberExits.eeTop:
                     if (meChamberSize == ChamberSize.eeDefault || meChamberSize == ChamberSize.eeTall)
                     {
+                        macChamberExitDictionary[leExits].Add(new Vector2(-5, 2 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-4, 2 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(-3, 2 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-5, 3 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-4, 3 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(-3, 3 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-5, 4 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-4, 4 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(-3, 4 + ((meChamberSize == ChamberSize.eeTall) ? 7 : 0)));
                     }
                     break;
                 case ChamberExits.eeTopRight:
                     if (meChamberSize == ChamberSize.eeLarge || meChamberSize == ChamberSize.eeLong)
                     {
+                        macChamberExitDictionary[leExits].Add(new Vector2(3, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(4, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(5, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
+                        macChamberExitDictionary[leExits].Add(new Vector2(6, 2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(3, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(4, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(5, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                         macChamberExitDictionary[leExits].Add(new Vector2(6, 3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(4, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(5, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
-                        macChamberExitDictionary[leExits].Add(new Vector2(6, 4 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0)));
                     }
                     break;
                 case ChamberExits.eeRight:
                     if (meChamberSize == ChamberSize.eeDefault || meChamberSize == ChamberSize.eeTall)
                     {
+                        macChamberExitDictionary[leExits].Add(new Vector2(1, -1));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1, -2));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1, -3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1, -4));
                         macChamberExitDictionary[leExits].Add(new Vector2(2, -1));
                         macChamberExitDictionary[leExits].Add(new Vector2(2, -2));
                         macChamberExitDictionary[leExits].Add(new Vector2(2, -3));
                         macChamberExitDictionary[leExits].Add(new Vector2(2, -4));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3, -1));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3, -2));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3, -3));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3, -4));
                     }
                     else
                     {
@@ -620,14 +629,14 @@ public class Chamber : MonoBehaviour
                 case ChamberExits.eeMiddleRight:
                     if (meChamberSize == ChamberSize.eeLarge || meChamberSize == ChamberSize.eeTall)
                     {
-                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 3));
-                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 4));
-                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 5));
-                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 6));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 3));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 4));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 5));
-                        macChamberExitDictionary[leExits].Add(new Vector2(3 + ((meChamberSize == ChamberSize.eeLarge) ? 7 : 0), 6));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 5));
+                        macChamberExitDictionary[leExits].Add(new Vector2(1 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 6));
+                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 3));
+                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 4));
+                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 5));
+                        macChamberExitDictionary[leExits].Add(new Vector2(2 + ((meChamberSize == ChamberSize.eeLarge) ? 8 : 0), 6));
                     }
                     break;
                 case ChamberExits.eeBottomLeft:
@@ -675,6 +684,12 @@ public class Chamber : MonoBehaviour
     public ChamberSize GetChamberSize()
     {
         return meChamberSize;
+    }
+
+    //Returns the dimensions of the chamber 
+    public Vector2 GetChamberDimensions()
+    {
+        return mcChamberDimensions;
     }
 
     public Vector2 GetExitPoint(ChamberExits peChamberExit)

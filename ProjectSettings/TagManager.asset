@@ -27,10 +27,10 @@ TagManager:
   - Enemy
   - Confiners
   - Coin
-  - 
-  - 
-  - 
-  - 
+  - ExitBox
+  - Camera
+  - Destructible
+  - Interactables
   - 
   - 
   - 
@@ -46,21 +46,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Background
-    uniqueID: 2776087011
-    locked: 0
-  - name: AttackBack
-    uniqueID: 109209469
-    locked: 0
-  - name: Enemy
-    uniqueID: 104981143
-    locked: 0
-  - name: Player
-    uniqueID: 3040848057
-    locked: 0
-  - name: Foreground
-    uniqueID: 696830337
-    locked: 0
   - name: DoorGround
     uniqueID: 2494645043
     locked: 0
@@ -69,6 +54,36 @@ TagManager:
     locked: 0
   - name: BlackCover
     uniqueID: 3466163395
+    locked: 0
+  - name: Background
+    uniqueID: 2776087011
+    locked: 0
+  - name: BackGround2
+    uniqueID: 697610063
+    locked: 0
+  - name: BackGround3
+    uniqueID: 1035394391
+    locked: 0
+  - name: AttackBack
+    uniqueID: 109209469
+    locked: 0
+  - name: Particles
+    uniqueID: 2895635313
+    locked: 0
+  - name: PassThroughPlatform
+    uniqueID: 619248301
+    locked: 0
+  - name: Enemy
+    uniqueID: 104981143
+    locked: 0
+  - name: Player
+    uniqueID: 3040848057
+    locked: 0
+  - name: Destructibles
+    uniqueID: 2630184047
+    locked: 0
+  - name: Foreground
+    uniqueID: 696830337
     locked: 0
   - name: Ground
     uniqueID: 3567403299

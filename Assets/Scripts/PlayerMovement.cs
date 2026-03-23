@@ -7,6 +7,7 @@ using Deck;
 using System;
 using JetBrains.Annotations;
 using TMPro;
+using TMPro.Examples;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -25,14 +26,21 @@ public class PlayerMovement : MonoBehaviour
     public GameObject mcPlayerHealthNumberDisplay;
     private Animator mcPlayerHealthBarAnimator;
 
+    //Pause Manager 
+    public PauseManager mcPauseManager;
+
     //Reference to the Money counter UI element
     [SerializeField] private GameObject mcMoneyCountDisplay;
 
-    public Rigidbody2D rb;
-    public Animator animator;
-    public ParticleSystem smokeFX;
-    public ParticleSystem ReloadFX;
-    public ParticleSystem ReloadCompleteFX;
+    //Reference to the Text field that shows the attack the hand holds
+    [SerializeField] private GameObject mcAttackHandNameDisplay;
+
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Animator animator;
+    [SerializeField] private ParticleSystem smokeFX;
+    [SerializeField] private ParticleSystem mcLandFX;
+    [SerializeField] private ParticleSystem ReloadFX;
+    [SerializeField] private ParticleSystem ReloadCompleteFX;
 
     public bool mbAttack = false;
 
@@ -42,8 +50,8 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Jumping")]
     public float jumpPower = 2f;
-    public int maxJumps = 2;
-    int jumpsRemaining;
+    public int maxJumps = 1;
+    public int jumpsRemaining;
 
     [Header("Dashing")]
     public float mfDashSpeed = 10f;
@@ -52,6 +60,13 @@ public class PlayerMovement : MonoBehaviour
     private bool mbIsDashing = false;
     private bool mbCanDash = true;
     TrailRenderer mcDashTrail;
+
+    [Header("Rolling")]
+    public float mfRollSpeed = 15f;
+    public float mfRollDuration = 0.1f;
+    public float mfRollCooldown = 1f;
+    private bool mbIsRolling = false;
+    private bool mbCanRoll = true;
 
     [Header("Acceleration")]
     public float acceleration = 2f;
@@ -143,7 +158,19 @@ public class PlayerMovement : MonoBehaviour
 
     private bool mbTakingDamage = false;
 
+    //Time the player is invulerable after taking damage
+    private float mrInvulnerabilityTime = 0.2f;
+
+    //Set of Vectors that define cardinal directions
     public Vector2[] macDirectionVectors = new Vector2[4];
+
+    //The Chamber the player is currently in
+    public Chamber mcCurrentChamber;
+
+    private float mfPlayerBoxColliderSizeY;
+
+    //Camera Controller used for various effects
+    [SerializeField] private CameraController mcCameraController;
 
     // Start is called before the first frame update
     void Start()
@@ -163,6 +190,8 @@ public class PlayerMovement : MonoBehaviour
         mcOriginalColor = mcSpriteRenderer.color;
 
         mcDashTrail = GetComponent<TrailRenderer>();
+
+        mfPlayerBoxColliderSizeY = GetComponent<BoxCollider2D>().size.y;
 
         mcPlayerHealthBarAnimator = mcPlayerHealthBar.GetComponent<Animator>();
         mcPlayerHealthBarAnimator.SetFloat("HealthBarSpeed", 0);
@@ -213,7 +242,7 @@ public class PlayerMovement : MonoBehaviour
         if (mbReloading)
         {
             mbMovementProhibited = true;
-            rb.velocity = Vector2.zero;
+            rb.velocity = rb.velocity / 2;
 
             mbReloading = DeckControllerAccess.ChargingReloadCard();
             if (!mbReloading)
@@ -228,67 +257,86 @@ public class PlayerMovement : MonoBehaviour
             mbMovementProhibited = false;
         }
 
-        if (!isWallJumping && !mbMovementProhibited && !mbIsDashing)
+        if (!isWallJumping && !mbMovementProhibited && !mbIsDashing && !mbIsRolling)
         {
             rb.velocity = new Vector2(horizontalMovement * moveSpeed, rb.velocity.y);
             Flip();
         }
 
-
-        mbUpStrike = Input.GetKey(KeyCode.W);
-        mbDownStrike = Input.GetKey(KeyCode.S) && !grounded;
+        //If controller is connected 
+        if(Gamepad.current != null)
+        {
+            mbUpStrike = Input.GetKey(KeyCode.W) || Gamepad.current.leftStick.ReadValue().y > 0.5f;
+            mbDownStrike = (Input.GetKey(KeyCode.S) || Gamepad.current.leftStick.ReadValue().y < -0.5f) && !grounded;
+        }
+        else
+        {
+            mbUpStrike = Input.GetKey(KeyCode.W);
+            mbDownStrike = (Input.GetKey(KeyCode.S)) && !grounded;
+        }
 
         animator.SetFloat("magnitude", rb.velocity.magnitude);
         animator.SetFloat("yVelocity", rb.velocity.y);
         animator.SetBool("isWallSliding", isWallSliding);
         animator.SetBool("attackFlip", mbAttackFlip);
         animator.SetBool("Reload", mbReloading);
+        animator.SetBool("Damage", mbTakingDamage);
+        animator.SetBool("Grounded", grounded);
 
-        if(!mbIsDashing)
+        if (!mbIsDashing && !mbIsRolling)
         {
             animator.SetTrigger("Reset");
         }
 
     }
 
-    //METHOD:: Receives Damage input to the enemy
+    //METHOD:: Receives Damage input to the player
     public void Damage(int pnDamageAmount, float pnKnockBack, AttackDirection peAttackDirection)
     {
-        mnPlayerHealth -= pnDamageAmount;
-
-        UpdateDisplayHealth = true;
-
-        StartCoroutine(TakeDamage(peAttackDirection));
-
-        if (mnPlayerHealth <= 0)
+        if(!mbTakingDamage)
         {
-            //TODO GAME OVER
+            StartCoroutine(TakeDamage(pnDamageAmount, pnKnockBack, peAttackDirection));
         }
     }
 
     /*
      * METHOD: Coroutine to Take Damage function called to update player health and apply knockback
      */
-    private IEnumerator TakeDamage(AttackDirection peAttackDirection)
+    private IEnumerator TakeDamage( int pnDamage, float pnKnockBack, AttackDirection peAttackDirection)
     {
+        mnPlayerHealth -= pnDamage;
+
+        if (mnPlayerHealth <= 0)
+        {
+            //TODO GAME OVER
+        }
+
+        UpdateDisplayHealth = true;
+
         mbTakingDamage = true;
         mbMovementProhibited = true;
 
         //Direction is Waypoint minus the current enemy position
         Vector2 lcDirection = macDirectionVectors[(int)peAttackDirection];
 
-        lcDirection.y += 0.5f;
+        lcDirection.y += 2f;
 
         lcDirection.x += lcDirection.x;
+
+        rb.velocity = Vector2.zero;
 
         rb.AddForce(lcDirection * 2, ForceMode2D.Impulse);
 
         mcSpriteRenderer.color = Color.red;
 
+        mcCameraController.ScreenShake(0.2f, 0.5f, 60);
+
         //TODO: Set to attacks stun time
         yield return new WaitForSeconds(0.2f);
         mcSpriteRenderer.color = mcOriginalColor;
         mbMovementProhibited = false;
+
+        //yield return new WaitForSeconds(mrInvulnerabilityTime);
         mbTakingDamage = false;
     }
 
@@ -333,6 +381,49 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    //Function to Roll player
+    public void Roll(InputAction.CallbackContext context)
+    {
+        //Only can roll if character is grounded
+        if (context.performed && mbCanRoll && grounded)
+        {
+            StartCoroutine(RollCoroutine());
+        }
+    }
+
+    //Pauses the game
+    public void Pause(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            mcPauseManager.SetFreeze();
+        }
+    }
+
+    //Coroutine to Dodge Roll
+    private IEnumerator RollCoroutine()
+    {
+        mbCanRoll = false;
+        mbIsRolling = true;
+
+        animator.SetTrigger("Roll");
+
+        float lfRollDirection = isFacingRight ? 1f : -1f;
+        rb.velocity = new Vector2(lfRollDirection * mfRollSpeed, 0);
+
+        smokeFX.Play();
+
+        yield return new WaitForSeconds(mfRollDuration);
+
+        rb.velocity = new Vector2(0f, rb.velocity.y);
+
+        mbIsRolling = false;
+
+        yield return new WaitForSeconds(mfRollCooldown);
+        mbCanRoll = true;
+    }
+
+    //Coroutine to Dash
     private IEnumerator DashCoroutine()
     {
         mbCanDash = false;
@@ -373,6 +464,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void DropThroughPlatform(InputAction.CallbackContext context)
+    {
+        if(context.performed && grounded)
+        {
+            mcCurrentChamber.PassThroughPlatform();
+        }
+    }
+
     public void Attack(InputAction.CallbackContext context)
     {
         if (context.performed)
@@ -385,6 +484,8 @@ public class PlayerMovement : MonoBehaviour
                 if(DeckControllerAccess.CardsInHand())
                 {
                     HandControllerAccess.PlayHand();
+
+                    mcAttackHandNameDisplay.GetComponent<TextMeshPro>().text = "";
                 }
 
                 AttackDirection leAttackDirection = AttackDirection.eeRightward;
@@ -406,7 +507,6 @@ public class PlayerMovement : MonoBehaviour
                 mcAttackGenerator.GenerateAttack(lacAttack, leAttackDirection, mbAttackFlip, isFacingRight);
 
                 mbAttack = true;
-                smokeFX.Play();
 
                 //Do reverse attack animation next attack
                 mbAttackFlip = !mbAttackFlip;
@@ -454,10 +554,34 @@ public class PlayerMovement : MonoBehaviour
     {
         if (context.performed && !DeckControllerAccess.GetAddHandActivate())
         {
-            //DeckControllerAccess.IncrementHand()
             if (DeckControllerAccess.IncrementHand())
             {
                 HandControllerAccess.AnimateHand();
+
+                TextMeshPro lcTextMeshPro = mcAttackHandNameDisplay.GetComponent<TextMeshPro>();
+
+                if (lcTextMeshPro)
+                {
+                    String lcHandText = "";
+
+                    //Get Attack Attributes from Attack Generator
+                    AttackAttributes lcHandAttributes = mcAttackGenerator.GetAttackAttributes(DeckControllerAccess.GetAttackCards());
+
+                    lcHandText += lcHandAttributes.GetAttackName() + "   " +
+                         mcAttackGenerator.CalculateAttackDamage(DeckControllerAccess.GetAttackCards());
+
+                    //Get Attack Effect Percentages
+                    for (int lnEffectChance = 0; lnEffectChance < (int)SuitEffect.eeSuitEffectEnd; lnEffectChance++)
+                    {
+                        if (lcHandAttributes.GetEffectChances()[lnEffectChance] != 0)
+                        {
+                            lcHandText += " <sprite index=" + (lnEffectChance) +  "> " + lcHandAttributes.GetEffectChances()[lnEffectChance] + "%";
+                        }
+                    }
+
+                    //Set Name of attack to field under hand
+                    lcTextMeshPro.text = lcHandText;
+                }
             }
         }
     }
@@ -481,6 +605,7 @@ public class PlayerMovement : MonoBehaviour
         if (!grounded & WallCheck() & horizontalMovement != 0)
         {
             isWallSliding = true;
+            smokeFX.Play();
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
         }
         else
@@ -520,13 +645,11 @@ public class PlayerMovement : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, jumpPower);
                 jumpsRemaining--;
                 animator.SetTrigger("jump");
-                smokeFX.Play();
             }
             else if (context.canceled)
             {
                 rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                 jumpsRemaining--;
-                smokeFX.Play();
             }
         }
 
@@ -537,7 +660,6 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);
             wallJumpTimer = 0;
             animator.SetTrigger("jump");
-            smokeFX.Play();
 
             //Force Flip
             if (transform.localScale.x != wallJumpDirection)
@@ -554,10 +676,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void GroundCheck()
     {
-        if(Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 0, groundLayer))
+        if(Physics2D.Raycast(transform.position, Vector2.down, (mfPlayerBoxColliderSizeY / 2) + 0.2f, groundLayer))
         {
             jumpsRemaining = maxJumps;
-            grounded = true;
+            if(grounded == false)
+            {
+                grounded = true;
+            }
         }
         else
         {
@@ -602,11 +727,6 @@ public class PlayerMovement : MonoBehaviour
             Vector3 ls = transform.localScale;
             ls.x *= -1f;
             transform.localScale = ls;
-
-            if(rb.velocity.y == 0)
-            {
-                smokeFX.Play();
-            }
         }
     }
 
@@ -620,6 +740,14 @@ public class PlayerMovement : MonoBehaviour
         {
             lcTextMeshPro.text = mnCoinAmount.ToString() + " $";
         }
+    }
+
+    /**
+     * Changes the current chamber the player is present in
+     */
+    public void ChangeChamber(Chamber pcNewChamber)
+    {
+        mcCurrentChamber = pcNewChamber;
     }
 
     private ChamberExits GetCheckExitTaken(ChamberExits leBaseExit)
@@ -762,8 +890,7 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, -0.1f);
         }
 
-
-            meCurrentChamberSize = peNextChamberSize;
+        meCurrentChamberSize = peNextChamberSize;
 
         mbChamberTransitionComplete = true;
     }

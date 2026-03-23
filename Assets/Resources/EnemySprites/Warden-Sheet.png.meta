@@ -1,0 +1,2657 @@
+fileFormatVersion: 2
+guid: c5cdc7cd8536f2d478197f3a6232b7ba
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 12
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 128
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 16384
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Warden-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60deee5a3d0265441a08e225ad3a0942
+      internalID: 1861518370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 984af14dc3356fb458415916f8725f6d
+      internalID: -558644353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4061b80d5e90c7e41aec4c215585a209
+      internalID: 1488573145
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f161758bb5f5649469dcd448d705f6ca
+      internalID: 2042281307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b36226b83f16b0479a985659aa58b7f
+      internalID: -682370260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45e9d0d46eb3ddd48a078522bebdea95
+      internalID: 393119617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0bec9d669c65474281c9c88bfcbe829
+      internalID: 1920936070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af294e392dffe7145b361bc7728da34e
+      internalID: 242722038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 05b442b78966f5748a94526c5e11c653
+      internalID: -1466655579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9dcc247c71f658e43bbafdc12a853860
+      internalID: 1408143911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 4300
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8229c291c91c976488625d89d701690a
+      internalID: -870912287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd5d43af79b963f4b9667febfc49fa5d
+      internalID: 1342269720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7e2dff388c95434a809a7660e732cd1
+      internalID: -1701492858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f8ca969c03f7414a8ac2aa2bc69f019
+      internalID: 567322454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd80f89ece8006f46bb58917f7151190
+      internalID: -835577966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0cf59c3b054c0941a4d253a6839beaa
+      internalID: -2109540898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 480bce93f4457ad449f1a567eae5d4ab
+      internalID: -330273407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f250fd48632861b40be47e3edda4aa89
+      internalID: -2039231184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3d5433bcc887da4aaefa4a39cd03b70
+      internalID: -411480917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cad668cfde651064eb474a559bf6b760
+      internalID: 1883822078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97adb12666a86f3449a09fba68adf111
+      internalID: -1335917231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 3870
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc5068ec4b682674a9dfa92c9ae845d9
+      internalID: -575913106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d52d7375ab6b6f44c952d53bc7a3d7ae
+      internalID: 144687491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f0891467bc6ed8d4eae0c0a91e4d27c1
+      internalID: 1343133039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 476b51618444703418e1085d873cbe9a
+      internalID: -1220870943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_25
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 27e81377a83892c47859e4c30fb250c0
+      internalID: 1661745771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_26
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6e0224932aabc9d4f979b79e64bc886b
+      internalID: 912796897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_27
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed203276953acde4ab86907eb0b13085
+      internalID: -1687454690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_28
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 26d365890f262094c8cddc2a93d8dd48
+      internalID: 411810703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_29
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 287b183385a351d49a892848f2e9202d
+      internalID: -415884680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d357c88f044a654cb458093b9646c82
+      internalID: 502857164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a9c230f0986080468b405b834250564
+      internalID: -492439216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 3440
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a0ec67a07e6f21b45b39d38eceb98cd6
+      internalID: -153852696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1dff922c501e30a4c8253b376db3ce36
+      internalID: -460517390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ced6b9fd26787a343b1915f6d0f7ed10
+      internalID: -269606724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a626377dc93911f448e06c4464e6a457
+      internalID: 536300988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_36
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68606d2b1b79ec443bc0aa44f0951e3e
+      internalID: 875494479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_37
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77843ae89093f534a950060bd72debb8
+      internalID: -1980097155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_38
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 125b1c2047e5c954a9a0bf552c5706c9
+      internalID: -2025586351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_39
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 467accc3c335a93449dbb6cbe1074896
+      internalID: -787645454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_40
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92278efc3729797428be1778662733e9
+      internalID: -770752934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_41
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f25a4de48e3c7f048b1f763443ff16ee
+      internalID: -1965831425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_42
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab223737d12230f4c97849cf47e22159
+      internalID: -1246912185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_43
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 3010
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46c894056d42a264e863052bf9f125d7
+      internalID: 304352475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_44
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17cb55387d68ce242b6ef593f2c4e0a2
+      internalID: 852447551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_45
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe955921da7239840be005bbebc5b601
+      internalID: -1114708752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_46
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99775eada49ad6b49af4f08eb5a8659c
+      internalID: -426335303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_47
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 178e5d0d214f1404e831c30551464ac0
+      internalID: -2001235684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_48
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 74fb76265143b7848b11acb6d0b085ad
+      internalID: 125725627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_49
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c16ea63bcfab7fc4babeb809d5a30947
+      internalID: -589818782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_50
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5b2dc692dd55b54ba9f23f14730b3ac
+      internalID: -408486121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_51
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b663ebe54af622d459d771323738e839
+      internalID: 1821956193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_52
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 420924616f4ef2042a1068639b14b142
+      internalID: 2047268481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_53
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b3be637a9e1d83488ca4478cf783c17
+      internalID: -81282608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_54
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 2580
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 591d5098b8359d0409c4bab968a0d425
+      internalID: 132742620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_55
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ba7b4fc331452374fa6875779f2969cf
+      internalID: 1686079806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_56
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d3fd35f91612ae40b1bcc3893f294c5
+      internalID: -2055617129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_57
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b59aa6acb8901349a4b6fa38f2d846d
+      internalID: -1361238716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_58
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db9fe5a20cc4c6849942c6411ae3659a
+      internalID: 1890427853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_59
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 189aea9f30e67074589ac7a049514f01
+      internalID: -792459901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_60
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63a74232514cd8441857d7644ae4be31
+      internalID: 340957810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_61
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 307fc24e2063f08429eaf5a6df67b7fc
+      internalID: -192380246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_62
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48d7924f8f815924cb9662a1d27b89d0
+      internalID: -1821148979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_63
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8612f299a6e1b324181f5f4a056936c5
+      internalID: 962271791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_64
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 352aa8f5a5161884b89e0ef057dfd8e8
+      internalID: 499041135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_65
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 2150
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e6576d1914e4ec4684a3b195c97a18b
+      internalID: -1569428027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_66
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 782da7209fd2d974e9d92b9158ca4aa9
+      internalID: 1583701713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_67
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6adff4d7b82f0824f8723ec2f512509a
+      internalID: -367900535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_68
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 797a9fd6e88700345add0e4b0280df1c
+      internalID: -594460076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_69
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0b9d9e5ed32c104880ac20eeccd2cbc
+      internalID: 2014763743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_70
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d739e2be307f624eb6eff6d16071b91
+      internalID: -1311682413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_71
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be0c0496edbe2e848a6ae0032560ed84
+      internalID: -256352509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_72
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9812fc2c47a5a64182b8eb53725cf3c
+      internalID: 754759646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_73
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 391fc3a514a24d84da4e5ff0276d24bd
+      internalID: -1828475515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_74
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32a136fbb34c75348a8d6180e3acff35
+      internalID: 1381834666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_75
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49c870f656f0daa46881b5c0bb341104
+      internalID: 268788820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_76
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 1720
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 370a7a637d27b094a8d9630a5243df84
+      internalID: -3016025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_77
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82a4380b97f7c7b4b9b2467954a3931e
+      internalID: -541504469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_78
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8124dcdc15984a642b22df4628f2b5e2
+      internalID: -1870096839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_79
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 20b1733c0d941264fad7e53b5fc4cb79
+      internalID: -1730196356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_80
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: facc3f13e978cf44fa7457741a7e2343
+      internalID: 918225887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_81
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19ab556f51cf39748847c04ca7463af8
+      internalID: -708283302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_82
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b831911f6c1eb440b3cc7e616917029
+      internalID: 1447837033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_83
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bdb794ed481bdb4e8f5f4878f892019
+      internalID: -1364071404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_84
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16bb934f43665db4e9b076de4f230773
+      internalID: -1863753557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_85
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6776c4d4d3c6c5b4c80eda154e1a59fd
+      internalID: -248994165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_86
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d6e12854fb93e2648891063b56d79d37
+      internalID: 780352091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_87
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 1290
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5854b095072de3747806fc52b976a2b2
+      internalID: -622528855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_88
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0d59e22728c1ca4a8071fb8d3c66e58
+      internalID: -211337817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_89
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b7b9cc8cbda3a747a1b49535be9b703
+      internalID: 717555210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_90
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7fb7e6307381834aa847efe1ad5c47e
+      internalID: -601661489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_91
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 295655cd2d643b545994f5bab950a0cc
+      internalID: -747065998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_92
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 445626d53dfa34740884a909affeee01
+      internalID: 220267077
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_93
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c404a009ba3b8314ca7f865648a3905d
+      internalID: 984466431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_94
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 243ff859723814e40a3de306d68ad49f
+      internalID: -1351583800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_95
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 75cc72a2e483b26449ac35a94f594cab
+      internalID: -669728379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_96
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b68cf096cf9c7c4e8cc8b5c07c242e4
+      internalID: 429188826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_97
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93f8626c1f654114999a11b36cb0f80c
+      internalID: 1935436863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_98
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 860
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7b8b1c3d25119f4092efa025fda7c90
+      internalID: 890770065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_99
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 912437f0a887af647b30698017e0c6c9
+      internalID: 1508942805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_100
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d8c27955e8634e9489c9dfe321e5e20d
+      internalID: 488832533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_101
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b731d19fdbbb4845a1071f4ec341e55
+      internalID: 7804135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_102
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ad74d59b4dfaac047bf8669a2a3f3f0d
+      internalID: -801944761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_103
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 021c8d105e41cfe4b8a28a8a422f40ba
+      internalID: 725541670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_104
+      rect:
+        serializedVersion: 2
+        x: 5560
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d563212e8520d24094fb59c83f2a55a
+      internalID: 550182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_105
+      rect:
+        serializedVersion: 2
+        x: 6672
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8de55d8de9f8b374d8c40d1a3056d5bf
+      internalID: 1809259716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_106
+      rect:
+        serializedVersion: 2
+        x: 7784
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c2db26e7dd96c241a8e758a351ed30d
+      internalID: -1870969906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_107
+      rect:
+        serializedVersion: 2
+        x: 8896
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 144d3d65448199d499154d2992f48aab
+      internalID: -557993515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_108
+      rect:
+        serializedVersion: 2
+        x: 10008
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e51e144ec6ca5a4cabca4e742c4cd3c
+      internalID: 519999475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_109
+      rect:
+        serializedVersion: 2
+        x: 11120
+        y: 430
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c0fdada4fd420a4f89c5aeaad940af0
+      internalID: -738826429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_110
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02e3bde01c59f484b9b9a803c20f33a0
+      internalID: -2069160878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_111
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 0
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d2d1c6017ca0df4697c068b0265a2ad
+      internalID: -403217113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_112
+      rect:
+        serializedVersion: 2
+        x: 2224
+        y: 0
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c5200280a145ee4d9f53f4ace834677
+      internalID: 533494044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_113
+      rect:
+        serializedVersion: 2
+        x: 3336
+        y: 0
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73d61cfc70dedab47a7e7c636498d9ea
+      internalID: -1825921799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Warden-Sheet_114
+      rect:
+        serializedVersion: 2
+        x: 4448
+        y: 0
+        width: 1112
+        height: 430
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d79ac57283b77254da3d5a765ee387a7
+      internalID: -993108059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Warden-Sheet_0: 1861518370
+      Warden-Sheet_1: -558644353
+      Warden-Sheet_10: -870912287
+      Warden-Sheet_100: 488832533
+      Warden-Sheet_101: 7804135
+      Warden-Sheet_102: -801944761
+      Warden-Sheet_103: 725541670
+      Warden-Sheet_104: 550182
+      Warden-Sheet_105: 1809259716
+      Warden-Sheet_106: -1870969906
+      Warden-Sheet_107: -557993515
+      Warden-Sheet_108: 519999475
+      Warden-Sheet_109: -738826429
+      Warden-Sheet_11: 1342269720
+      Warden-Sheet_110: -2069160878
+      Warden-Sheet_111: -403217113
+      Warden-Sheet_112: 533494044
+      Warden-Sheet_113: -1825921799
+      Warden-Sheet_114: -993108059
+      Warden-Sheet_12: -1701492858
+      Warden-Sheet_13: 567322454
+      Warden-Sheet_14: -835577966
+      Warden-Sheet_15: -2109540898
+      Warden-Sheet_16: -330273407
+      Warden-Sheet_17: -2039231184
+      Warden-Sheet_18: -411480917
+      Warden-Sheet_19: 1883822078
+      Warden-Sheet_2: 1488573145
+      Warden-Sheet_20: -1335917231
+      Warden-Sheet_21: -575913106
+      Warden-Sheet_22: 144687491
+      Warden-Sheet_23: 1343133039
+      Warden-Sheet_24: -1220870943
+      Warden-Sheet_25: 1661745771
+      Warden-Sheet_26: 912796897
+      Warden-Sheet_27: -1687454690
+      Warden-Sheet_28: 411810703
+      Warden-Sheet_29: -415884680
+      Warden-Sheet_3: 2042281307
+      Warden-Sheet_30: 502857164
+      Warden-Sheet_31: -492439216
+      Warden-Sheet_32: -153852696
+      Warden-Sheet_33: -460517390
+      Warden-Sheet_34: -269606724
+      Warden-Sheet_35: 536300988
+      Warden-Sheet_36: 875494479
+      Warden-Sheet_37: -1980097155
+      Warden-Sheet_38: -2025586351
+      Warden-Sheet_39: -787645454
+      Warden-Sheet_4: -682370260
+      Warden-Sheet_40: -770752934
+      Warden-Sheet_41: -1965831425
+      Warden-Sheet_42: -1246912185
+      Warden-Sheet_43: 304352475
+      Warden-Sheet_44: 852447551
+      Warden-Sheet_45: -1114708752
+      Warden-Sheet_46: -426335303
+      Warden-Sheet_47: -2001235684
+      Warden-Sheet_48: 125725627
+      Warden-Sheet_49: -589818782
+      Warden-Sheet_5: 393119617
+      Warden-Sheet_50: -408486121
+      Warden-Sheet_51: 1821956193
+      Warden-Sheet_52: 2047268481
+      Warden-Sheet_53: -81282608
+      Warden-Sheet_54: 132742620
+      Warden-Sheet_55: 1686079806
+      Warden-Sheet_56: -2055617129
+      Warden-Sheet_57: -1361238716
+      Warden-Sheet_58: 1890427853
+      Warden-Sheet_59: -792459901
+      Warden-Sheet_6: 1920936070
+      Warden-Sheet_60: 340957810
+      Warden-Sheet_61: -192380246
+      Warden-Sheet_62: -1821148979
+      Warden-Sheet_63: 962271791
+      Warden-Sheet_64: 499041135
+      Warden-Sheet_65: -1569428027
+      Warden-Sheet_66: 1583701713
+      Warden-Sheet_67: -367900535
+      Warden-Sheet_68: -594460076
+      Warden-Sheet_69: 2014763743
+      Warden-Sheet_7: 242722038
+      Warden-Sheet_70: -1311682413
+      Warden-Sheet_71: -256352509
+      Warden-Sheet_72: 754759646
+      Warden-Sheet_73: -1828475515
+      Warden-Sheet_74: 1381834666
+      Warden-Sheet_75: 268788820
+      Warden-Sheet_76: -3016025
+      Warden-Sheet_77: -541504469
+      Warden-Sheet_78: -1870096839
+      Warden-Sheet_79: -1730196356
+      Warden-Sheet_8: -1466655579
+      Warden-Sheet_80: 918225887
+      Warden-Sheet_81: -708283302
+      Warden-Sheet_82: 1447837033
+      Warden-Sheet_83: -1364071404
+      Warden-Sheet_84: -1863753557
+      Warden-Sheet_85: -248994165
+      Warden-Sheet_86: 780352091
+      Warden-Sheet_87: -622528855
+      Warden-Sheet_88: -211337817
+      Warden-Sheet_89: 717555210
+      Warden-Sheet_9: 1408143911
+      Warden-Sheet_90: -601661489
+      Warden-Sheet_91: -747065998
+      Warden-Sheet_92: 220267077
+      Warden-Sheet_93: 984466431
+      Warden-Sheet_94: -1351583800
+      Warden-Sheet_95: -669728379
+      Warden-Sheet_96: 429188826
+      Warden-Sheet_97: 1935436863
+      Warden-Sheet_98: 890770065
+      Warden-Sheet_99: 1508942805
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

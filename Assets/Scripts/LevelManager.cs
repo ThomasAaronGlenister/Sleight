@@ -29,7 +29,7 @@ public class LevelManager : MonoBehaviour
     public Animator mcTransition;
 
     //Number of chambers to be added to level
-    private int mnNumChambersInLevel = 6;
+    private int mnNumChambersInLevel = 5;
 
     //reference to camera used to change camera bounds
     public ConfinerUpdater mcConfinerUpdater;
@@ -43,6 +43,13 @@ public class LevelManager : MonoBehaviour
 
     //MapController access
     public MapController MapControllerAccess;
+
+    //Enemy manager used to create enemys in scene
+    [SerializeField] private EnemyManager mcEnemyManager;
+
+    //Set of Chamber offsets
+    Vector2[,,,] macChamberPositionOffsets = new Vector2[(int)ChamberSize.eeLarge + 1, (int)ChamberSize.eeLarge + 1, (int)ChamberExits.eeNone, (int)ChamberExits.eeNone];
+
 
     // Start is called before the first frame update
     void Start()
@@ -63,6 +70,9 @@ public class LevelManager : MonoBehaviour
         {
             Debug.Log("MapController not Found");
         }
+
+        //Load all enemy and enemy attacks before building level
+        mcEnemyManager.Initialize();
 
         GenerateLevel(0);
     }
@@ -129,9 +139,11 @@ public class LevelManager : MonoBehaviour
             {
                 lcChamber = CurrentLevelChambers[lnNumChambers].GetComponent<Chamber>();
 
-                lcChamber.PopulateWithEnemies();
+                //TODO: refactor treasure populate
 
-                lcChamber.PopulateWithTreasure();
+                mcEnemyManager.PopulateWithEnemies(lcChamber);
+
+                //lcChamber.PopulateWithTreasure();
                 if (lnNumChambers != 0)
                 {
                     //lcChamber.PopulateWithEnemies();
@@ -156,7 +168,8 @@ public class LevelManager : MonoBehaviour
                         ChamberExits leNewChamberEntrance = lcAttachedChamber.GetValidExit(leChamberExit);
 
                         //Check if randomized chamber can be added to grid
-                        if (AssignNextChamberCoordinates((int)lcExitPoint.x, (int)lcExitPoint.y, leNewChamberEntrance, CurrentLevelChambers[lnNextChamberToAdd]))
+                        if (leNewChamberEntrance != ChamberExits.eeNone &&
+                            AssignNextChamberCoordinates((int)lcExitPoint.x, (int)lcExitPoint.y, leNewChamberEntrance, CurrentLevelChambers[lnNextChamberToAdd]))
                         {
                             //Create Exit to the Next chamber in the set
                             lcChamber.CreateExit(leChamberExit, CurrentLevelChambers[lnNextChamberToAdd]);
@@ -168,8 +181,18 @@ public class LevelManager : MonoBehaviour
                             lcChamber.ConnectExits(leChamberExit, leNewChamberEntrance);
                             lcAttachedChamber.ConnectExits(leNewChamberEntrance, leChamberExit);
 
+                            //Shift new chamber 2D position to connect it to base chamber
+                            PositionNewChamber(lcChamber.transform.position, lcChamber.GetChamberSize(), leChamberExit, lcAttachedChamber.GetChamberSize(), 
+                                leNewChamberEntrance, CurrentLevelChambers[lnNextChamberToAdd]);
+
+                            Debug.Log("New Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].name + " Entrance: " + leNewChamberEntrance + 
+                                "  Base Chamber: " + lcChamber.gameObject.name  + " Exit: " + leChamberExit);
+
+                            mcConfinerUpdater.AddPolygonCameraCollider(CurrentLevelChambers[lnNextChamberToAdd].GetComponent<Chamber>().GetCameraCollider(),
+                                CurrentLevelChambers[lnNextChamberToAdd].transform.position);
+
                             //Debug.Log("Chamber: " + CurrentLevelChambers[lnNumChambers].ToString() + "Create Exit " + leChamberExit + 
-                             //   " -----> Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].ToString() + "Create Entrance " + leNewChamberEntrance);
+                            //   " -----> Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].ToString() + "Create Entrance " + leNewChamberEntrance);
 
                             lnNextChamberToAdd++;
                         }
@@ -194,6 +217,9 @@ public class LevelManager : MonoBehaviour
                 lnNumFailedExits = 0;
             }
         }
+
+        //Pathfinding rescan on new level
+        AstarPath.active.Scan();
     }
 
     private bool AssignNextChamberCoordinates(int pnBaseChamberX, int pnBaseChamberY, 
@@ -258,6 +284,125 @@ public class LevelManager : MonoBehaviour
         return lbValidPlacement;
     }
 
+    /**
+     * Moves the new chamber position relative to the base chamber 
+     */
+    private void PositionNewChamber(Vector2 pcBaseChamberPosition, ChamberSize peBaseChamberSize, ChamberExits peBaseChamberExit, ChamberSize peNewChamberSize,
+         ChamberExits peNewChamberEntrance, GameObject pcNewChamber)
+    {
+       
+        Vector2 lcNewChamberPositon = pcBaseChamberPosition;
+
+        int lnBaseOffsetX = 0;
+        int lnBaseOffsetY = 0;
+
+        //Adjust 2D position from the size of the base chamber and the entrance of the new chamber.
+
+        if(peNewChamberEntrance == ChamberExits.eeMiddleLeft || peNewChamberEntrance == ChamberExits.eeLeft)
+        {
+            lnBaseOffsetX = 14;
+        }
+
+        if (peNewChamberEntrance == ChamberExits.eeMiddleRight || peNewChamberEntrance == ChamberExits.eeRight)
+        {
+            lnBaseOffsetX = -14;
+        }
+
+        if (peNewChamberEntrance == ChamberExits.eeBottomLeft || peNewChamberEntrance == ChamberExits.eeBottom || peNewChamberEntrance == ChamberExits.eeBottomRight)
+        {
+            lnBaseOffsetY = 8;
+        }
+
+        if (peNewChamberEntrance == ChamberExits.eeTopLeft || peNewChamberEntrance == ChamberExits.eeTop || peNewChamberEntrance == ChamberExits.eeTopRight)
+        {
+            lnBaseOffsetY = -8;
+        }
+
+        if (((peBaseChamberSize == ChamberSize.eeLarge || peBaseChamberSize == ChamberSize.eeLong) && (peNewChamberEntrance == ChamberExits.eeMiddleLeft || peNewChamberEntrance == ChamberExits.eeLeft))
+            || ((peNewChamberSize == ChamberSize.eeLarge || peNewChamberSize == ChamberSize.eeLong) && (peNewChamberEntrance == ChamberExits.eeMiddleRight || peNewChamberEntrance == ChamberExits.eeRight)))
+        {
+            if (lnBaseOffsetX < 0)
+            {
+                lnBaseOffsetX -= 7;
+            }
+            else
+            {
+                lnBaseOffsetX += 7;
+            }
+        }
+
+        if (((peBaseChamberSize == ChamberSize.eeLarge || peBaseChamberSize == ChamberSize.eeTall) && (peNewChamberEntrance == ChamberExits.eeBottom || peNewChamberEntrance == ChamberExits.eeBottomRight || peNewChamberEntrance == ChamberExits.eeBottomLeft))
+            || ((peNewChamberSize == ChamberSize.eeLarge || peNewChamberSize == ChamberSize.eeTall) && (peNewChamberEntrance == ChamberExits.eeTop || peNewChamberEntrance == ChamberExits.eeTopLeft || peNewChamberEntrance == ChamberExits.eeTopRight)))
+        {
+            if(lnBaseOffsetY < 0)
+            {
+                lnBaseOffsetY -= 7;
+            }
+            else
+            {
+                lnBaseOffsetY += 7;
+            }
+        }
+
+        if((peNewChamberEntrance == ChamberExits.eeLeft && peBaseChamberExit == ChamberExits.eeMiddleRight) ||
+            (peNewChamberEntrance == ChamberExits.eeRight && peBaseChamberExit == ChamberExits.eeMiddleLeft))
+        {
+            lnBaseOffsetY += 7;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeMiddleRight && peBaseChamberExit == ChamberExits.eeLeft) ||
+            (peNewChamberEntrance == ChamberExits.eeMiddleLeft && peBaseChamberExit == ChamberExits.eeRight))
+        {
+            lnBaseOffsetY -= 7;
+        }
+
+
+        //Top bottom entrance offsets
+        if ((peNewChamberEntrance == ChamberExits.eeBottom && peBaseChamberExit == ChamberExits.eeTopLeft) ||
+            (peNewChamberEntrance == ChamberExits.eeTop && peBaseChamberExit == ChamberExits.eeBottomLeft))
+        {
+            lnBaseOffsetX -= 2;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeTopLeft && peBaseChamberExit == ChamberExits.eeBottom) ||
+            (peNewChamberEntrance == ChamberExits.eeBottomLeft && peBaseChamberExit == ChamberExits.eeTop))
+        {
+            lnBaseOffsetX += 2;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeBottom && peBaseChamberExit == ChamberExits.eeTopRight) ||
+            (peNewChamberEntrance == ChamberExits.eeTop && peBaseChamberExit == ChamberExits.eeBottomRight))
+        {
+            lnBaseOffsetX += 8;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeTopRight && peBaseChamberExit == ChamberExits.eeBottom) ||
+            (peNewChamberEntrance == ChamberExits.eeBottomRight && peBaseChamberExit == ChamberExits.eeTop))
+        {
+            lnBaseOffsetX -= 8;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeTopRight && peBaseChamberExit == ChamberExits.eeBottomLeft) ||
+            (peNewChamberEntrance == ChamberExits.eeBottomRight && peBaseChamberExit == ChamberExits.eeTopLeft))
+        {
+            lnBaseOffsetX -= 10;
+        }
+
+        if ((peNewChamberEntrance == ChamberExits.eeBottomLeft && peBaseChamberExit == ChamberExits.eeTopRight) ||
+            (peNewChamberEntrance == ChamberExits.eeTopLeft && peBaseChamberExit == ChamberExits.eeBottomRight))
+        {
+            lnBaseOffsetX += 10;
+        }
+
+
+        lcNewChamberPositon.x += lnBaseOffsetX;
+        lcNewChamberPositon.y += lnBaseOffsetY;
+
+        pcNewChamber.GetComponent<Chamber>().RepositionChamber(lcNewChamberPositon);
+
+        pcNewChamber.transform.gameObject.SetActive(true);
+    }
+
     /*
      * METHOD: Returns whether or not to create chamber based on probability
      */
@@ -291,6 +436,7 @@ public class LevelManager : MonoBehaviour
             switch(pnLevel)
             {
                 case 0:
+                    lcChamber.position = Vector2.zero;
                     macLevel1Chambers.Add(lcChamber.gameObject);
                     break;
                 default:
@@ -333,7 +479,6 @@ public class LevelManager : MonoBehaviour
 
     IEnumerator ChangeChamberCoroutine(ChamberSize peChamberSize, GameObject pcNextChamber)
     {
-
         mcTransition.SetTrigger("Start");
 
         yield return new WaitForSeconds(0.5f);
@@ -350,14 +495,37 @@ public class LevelManager : MonoBehaviour
 
         pcNextChamber.gameObject.SetActive(true);
 
+        //Pathfinding rescan on new chamber for enemy AI
+        AstarPath.active.Scan();
+
         lcNextChamber.Enter();
 
         yield return new WaitForSeconds(0.2f);
 
         mcTransition.SetTrigger("End");
 
-
         mcCurrentChamber = pcNextChamber;
+    }
+
+    //Creates list of chamber position offsets 
+    private void InitializeChamberPositionOffsets()
+    {
+        int lnBaseOffsetX = 0;
+        int lnBaseOffsetY = 0;
+
+        for (int lnBaseChamberSize = 0; lnBaseChamberSize < (int)ChamberSize.eeLarge + 1; lnBaseChamberSize++)
+        {
+            for (int lnNewChamberSize = 0; lnNewChamberSize < (int)ChamberSize.eeLarge + 1; lnNewChamberSize++)
+            {
+                for (int lnBaseChamberExit = 0; lnBaseChamberExit < (int)ChamberExits.eeNone; lnBaseChamberExit++)
+                {
+                    for (int lnNewChamberEntrance = 0; lnNewChamberEntrance < (int)ChamberExits.eeNone; lnNewChamberEntrance++)
+                    {
+                        macChamberPositionOffsets[lnBaseChamberSize, lnNewChamberSize, lnBaseChamberExit, lnNewChamberEntrance] = new Vector2(0, 0);
+                    }
+                }
+            }
+        }
     }
 
     private void InitializeChamberExitTranslations()

@@ -298,6 +298,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Debuff_Icons-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7281f3922560e45438a884b006a40f26
+      internalID: -128580738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Debuff_Icons-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97addd21a3cdb544cb947b9cdc25d194
+      internalID: -804665298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Debuff_Icons-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 1408
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c3f6ee0668de3141bd714fa55c45232
+      internalID: 999164827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -311,6 +374,8 @@ TextureImporter:
     nameFileIdTable:
       Debuff_Icons-Sheet_0: -1441454051
       Debuff_Icons-Sheet_1: -1505065159
+      Debuff_Icons-Sheet_10: -804665298
+      Debuff_Icons-Sheet_11: 999164827
       Debuff_Icons-Sheet_2: 901522600
       Debuff_Icons-Sheet_3: -334207707
       Debuff_Icons-Sheet_4: 1886782664
@@ -318,6 +383,7 @@ TextureImporter:
       Debuff_Icons-Sheet_6: -1159028660
       Debuff_Icons-Sheet_7: 766101756
       Debuff_Icons-Sheet_8: 2147355099
+      Debuff_Icons-Sheet_9: -128580738
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

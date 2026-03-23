@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Deck;
+using System.Collections.Generic;
 
 public class EnemyAttributes
 {
@@ -47,9 +48,6 @@ public class EnemyAttributes
     //Distance between tracking points for the enemy
     private float mfWaypointDistance;
 
-    //Enemy Attack
-    EnemyAttacks meEnemyAttack;
-
     //Enemy attack Damage
     private int mnAttackDamage;
 
@@ -63,12 +61,16 @@ public class EnemyAttributes
     private string mcEnemyAnimationClipsPath;
 
     //Animation clip string identifiers
-    private AnimationClip mcEnemyAttackAnimationClip;
+    private AnimationClip mcEnemyAttackAnimationClip = null;
+    private AnimationClip mcEnemyAttack2AnimationClip = null;
+    private AnimationClip mcEnemyAttack3AnimationClip = null;
     private AnimationClip mcEnemyDamageAnimationClip;
     private AnimationClip mcEnemyMoveAnimationClip;
-    private AnimationClip mcEnemyWindupAnimationClip;
+    private AnimationClip mcEnemyWaitAnimationClip;
     private AnimationClip mcEnemyJumpAnimationClip;
     private AnimationClip mcEnemyIdleAnimationClip;
+
+    private List<AnimationClip> macEnemyAttackAnimations = new List<AnimationClip>();
 
     //Enemy hitbox size and offsets
     private float mfBoxColliderWidthX = 1;
@@ -80,6 +82,12 @@ public class EnemyAttributes
     private float mnMovementTargetOffsetY = 0;
 
     private bool mbForceMovement = false;
+
+    private float mfIdleMovementRange = 0;
+    private float mfIdleMovementSpeed = 1;
+
+    //List of attacks this enemy can perform
+    List<AttackAttributes> macEnemyAttacks = new List<AttackAttributes>();
 
     //Constructor
     public EnemyAttributes(
@@ -97,7 +105,6 @@ public class EnemyAttributes
         float pfAttackLungeVertical = 0,
         float pfAttackLungeMultiplier = 1,
         float pfWaypointDistance = 3,
-        EnemyAttacks peEnemyAttack = EnemyAttacks.eeNone,
         int pnAttackDamage = 0,
         float pfAttackWindupTime = 0f,
         float pfSizeMultiplier = 1,
@@ -107,7 +114,9 @@ public class EnemyAttributes
         float pfBoxColliderYOffset = 0,
         float pnMovementTargetOffsetX = 0,
         float pnMovementTargetOffsetY = 0,
-        bool pbForceMovement = false)
+        bool pbForceMovement = false,
+        float pfIdleMovementRange = 3,
+        float pfIdleMovementSpeed = 1)
     {
         mcEnemyName = name;
         mnHealthPoints = pnHealthPoints;
@@ -123,7 +132,6 @@ public class EnemyAttributes
         mfAttackLungeVertical = pfAttackLungeVertical;
         mfAttackLungeMultiplier = pfAttackLungeMultiplier;
         mfWaypointDistance = pfWaypointDistance;
-        meEnemyAttack = peEnemyAttack;
         mnAttackDamage = pnAttackDamage;
         mnAttackWindupTime = pfAttackWindupTime;
         mfSizeMultiplier = pfSizeMultiplier;
@@ -134,8 +142,15 @@ public class EnemyAttributes
         mnMovementTargetOffsetX = pnMovementTargetOffsetX;
         mnMovementTargetOffsetY = pnMovementTargetOffsetY;
         mbForceMovement = pbForceMovement;
-
+        mfIdleMovementRange = pfIdleMovementRange;
+        mfIdleMovementSpeed = pfIdleMovementSpeed;
         SetEnemyAnimations("Animations/EnemyAnimations/" + mcEnemyName + "Animations");
+    }
+
+    //Adds a attack the enemy may perform
+    public void AddEnemyAttack(AttackAttributes pcNewAttack)
+    {
+        macEnemyAttacks.Add(pcNewAttack);
     }
 
     public void SetEnemyAnimations(
@@ -155,13 +170,21 @@ public class EnemyAttributes
             {
                 mcEnemyAttackAnimationClip = lcClip;
             }
+            else if (lcClip.name == mcEnemyName + "Attack2")
+            {
+                mcEnemyAttack2AnimationClip = lcClip;
+            }
+            else if (lcClip.name == mcEnemyName + "Attack3")
+            {
+                mcEnemyAttack3AnimationClip = lcClip;
+            }
             else if (lcClip.name == mcEnemyName + "Damage")
             {
                 mcEnemyDamageAnimationClip = lcClip;
             }
-            else if (lcClip.name == mcEnemyName + "Windup")
+            else if (lcClip.name == mcEnemyName + "Wait")
             {
-                mcEnemyWindupAnimationClip = lcClip;
+                mcEnemyWaitAnimationClip = lcClip;
             }
             else if (lcClip.name == mcEnemyName + "Jump")
             {
@@ -174,6 +197,42 @@ public class EnemyAttributes
         }
     }
 
+    /**
+     * Gets the attack to be performed based on enemy position and attributes
+     * pfGroundDistance - distance enemy is from groundq
+     * pfWallDistance - distance enemy is from wall
+     * pfTargetPositionX - Horizontal distance from enemy to target
+     * pfTargetPositionY - Vertical distance from enemy to target
+     * 
+     * Returns Null if no attack is within range
+     */
+    public AttackAttributes GetAttack(float pfGroundDistance, float pfWallDistance, float pfTargetPositionX, float pfTargetPositionY)
+    {
+        AttackAttributes lcReturnAttack = null;
+
+        //Create list of possible attacks that can be performed
+        List<AttackAttributes> lacPossibleAttacks = new List<AttackAttributes>();
+
+        foreach(AttackAttributes lcAttackAttributes in macEnemyAttacks)
+        {
+            if(lcAttackAttributes.WithinAttackBounds(pfGroundDistance, pfWallDistance, pfTargetPositionX, pfTargetPositionY))
+            {
+                //add same attack mulitple times to list depending on chance value
+                for(int lnAttAtt = 0; lnAttAtt < lcAttackAttributes.GetChanceValue(); lnAttAtt++)
+                {
+                    lacPossibleAttacks.Add(lcAttackAttributes);
+                }
+            }
+        }
+
+        //Get random attack from list 
+        if(lacPossibleAttacks.Count != 0)
+        {
+            lcReturnAttack = lacPossibleAttacks[UnityEngine.Random.Range(0, lacPossibleAttacks.Count)];
+        }
+
+        return lcReturnAttack;
+    }
 
     //Attribute Getters
     public int GetHealthPoints()
@@ -202,8 +261,6 @@ public class EnemyAttributes
         { return mfAttackLungeVertical; }
     public float GetWaypointDistance()
         { return mfWaypointDistance; }
-    public EnemyAttacks GetEnemyAttack()
-        { return meEnemyAttack;  }
     public int GetEnemyAttackDamage()
         { return mnAttackDamage; }
     public float GetEnemyAttackWindupTime()
@@ -222,13 +279,20 @@ public class EnemyAttributes
     {  return mcEnemyAnimationClipsPath; }
 
     public AnimationClip GetEnemyMoveAnimationClip()
-        { return mcEnemyMoveAnimationClip; }
+    { return mcEnemyMoveAnimationClip; }
+
+    //Attack animation clips
     public AnimationClip GetEnemyAttackAnimationClip()
-        { return mcEnemyAttackAnimationClip; }
+    { return mcEnemyAttackAnimationClip; }
+    public AnimationClip GetEnemyAttack2AnimationClip()
+    { return mcEnemyAttack2AnimationClip; }
+    public AnimationClip GetEnemyAttack3AnimationClip()
+    { return mcEnemyAttack3AnimationClip; }
+
     public AnimationClip GetEnemyJumpAnimationClip()
     { return mcEnemyJumpAnimationClip; }
-    public AnimationClip GetEnemyWindupAnimationClip()
-    { return mcEnemyWindupAnimationClip; }
+    public AnimationClip GetEnemyWaitAnimationClip()
+    { return mcEnemyWaitAnimationClip; }
     public AnimationClip GetEnemyDamageAnimationClip()
     { return mcEnemyDamageAnimationClip; }
     public AnimationClip GetEnemyIdleAnimationClip()
@@ -243,4 +307,9 @@ public class EnemyAttributes
     public bool GetForceMovement()
     { return mbForceMovement; }
 
+    public float GetIdleMovementRange()
+    { return mfIdleMovementRange; }
+
+    public float GetIdleMovementSpeed()
+    { return mfIdleMovementSpeed; }
 }

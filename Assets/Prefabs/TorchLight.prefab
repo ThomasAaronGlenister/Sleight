@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5834475605188870701}
   - component: {fileID: 4141896054998646243}
   - component: {fileID: 1573187790680774361}
+  - component: {fileID: 1006497740569232982}
   m_Layer: 0
   m_Name: TorchLight
   m_TagString: Untagged
@@ -73,7 +74,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 696830337
-  m_SortingLayer: 5
+  m_SortingLayer: 12
   m_SortingOrder: 1
   m_Sprite: {fileID: -61611784, guid: e759ad7a07719b8468370f389c0ee251, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -123,11 +124,11 @@ MonoBehaviour:
   m_LightType: 3
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.5
-  m_Color: {r: 1, g: 0.40568474, b: 0, a: 1}
-  m_Intensity: 3.43
+  m_Color: {r: 1, g: 0.3444736, b: 0.042452812, a: 1}
+  m_Intensity: 2.03
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
-  m_ApplyToSortingLayers: 000000004dc9152bd17392928114623807def94967d6e2afddea095525e511831f6be26f375897c627d39265457e3c42a53d45157d67820681c988292341a2d47d58d623256f42663343b194
+  m_ApplyToSortingLayers: 000000007d67820681c988292341a2d47d58d623256f42663343b194b9a83fb597e2410657ddb63dadfae8246f6cc59c
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -157,3 +158,15 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
+--- !u!114 &1006497740569232982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4898748383900034786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd8bd3ad22919464f9c1cc7d05558b6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

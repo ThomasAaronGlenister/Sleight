@@ -143,6 +143,11 @@ public class DeckController : MonoBehaviour
 
     public AnimationCurve mcCardToHandMovementAnimationCurve;
 
+    public float mfCardPopUp = 2f;
+    public float mfCardPopLeft = -1f;
+
+    public int mnFakeCardKeeper = 0;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -168,7 +173,7 @@ public class DeckController : MonoBehaviour
          */
         for (int i = 0; i < 13; i++)
         {
-            macPlayerDeck.Add(macFullDeck[UnityEngine.Random.Range(0, (macFullDeck.Count))]);
+            macPlayerDeck.Add(macFullDeck[UnityEngine.Random.Range(0, (macFullDeck.Count) - 48)]);
         }
 
         Time.fixedDeltaTime = 1.0f / 60f;
@@ -225,6 +230,13 @@ public class DeckController : MonoBehaviour
         }
 
     } //End Update
+
+    public string GetAttackHandInformation()
+    {
+        string lcAttackHandName = "";
+
+        return lcAttackHandName;
+    }
 
     public bool ChargingReloadCard()
     {
@@ -380,8 +392,6 @@ public class DeckController : MonoBehaviour
         //Shift all cards up to swap card offset downwards
         if (CardsShiftActivate && !pbCardInHand)
         {
-            //Shift Fake card on top of current front card. it will either be added to hand or spent
-            AssignCardToDisplay(macFakeCards[0], macActiveDeck[mnActiveDeckTopCardPointer]);
 
             for (int i = 0; i < lnCardsToCycle; i++)
             {
@@ -420,14 +430,41 @@ public class DeckController : MonoBehaviour
             CardsShiftActivate = false;
         }
 
+        if(pbCardInHand)
+        {
+            //First Dissolve Fake Card to indicate card being used up
+            if (mfCardDissolve < 1f)
+            {
+                mfCardDissolve += (Time.deltaTime * 2);
+
+                for (int lnFake = 0; lnFake < macSleightCards.Count; lnFake++)
+                {
+                    macFakeCards[lnFake].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
+                    macFakeCards[lnFake].transform.position =
+                        new Vector3(macFakeCards[lnFake].transform.position.x, macFakeCards[lnFake].transform.position.y + HandCardsRaiseOffset, 0);
+                }
+            }
+        }
+        //if this is first call to this function from update run Card Pop Coroutine
+        else if(mfCycleDeckStopActivate == 0)
+        {
+            StartCoroutine(PlayCardCoroutine());
+        }
+
+        /*
         //First Dissolve Fake Card to indicate card being used up
-        if(mfCardDissolve < 1f)
+        if (mfCardDissolve < 1f)
         {
             //Dissolve deck card
-            if(!pbCardInHand)
+            if (!pbCardInHand)
             {
                 mfCardDissolve += (Time.deltaTime * mrCardDissolveRate);
-                macFakeCards[0].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
+
+                //TODO: Test pop card off of hand
+                macFakeCards[0].GetComponent<Rigidbody2D>().gravityScale = 6;
+                macFakeCards[0].GetComponent<Rigidbody2D>().AddForce(new Vector2(mfCardPopLeft, mfCardPopUp), ForceMode2D.Impulse);
+
+                //macFakeCards[0].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
             }
             //Dissolve all cards in hand
             else
@@ -437,13 +474,16 @@ public class DeckController : MonoBehaviour
                 for (int lnFake = 0; lnFake < macSleightCards.Count; lnFake++)
                 {
                     macFakeCards[lnFake].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
-                    macFakeCards[lnFake].transform.position = 
+                    macFakeCards[lnFake].transform.position =
                         new Vector3(macFakeCards[lnFake].transform.position.x, macFakeCards[lnFake].transform.position.y + HandCardsRaiseOffset, 0);
                 }
             }
         }
+        */
+
+
         //Rotate deck cards if hand is empty
-        else if(!pbCardInHand)
+        if (!pbCardInHand && mfCycleDeckStopActivate < 30f)
         {
             //Loop over all display card game objects
             for (int i = 0; i < lnCardsToCycle; i++)
@@ -474,18 +514,14 @@ public class DeckController : MonoBehaviour
             mbActivate = false;
             mfCardDissolve = 0f;
         }
-        //Check if Next card on the stack has moved into front card position
-        else if (mfCycleDeckStopActivate >= 30f)
-        {
-            //Clear Fake card 
-            macFakeCards[0].GetComponent<SpriteRenderer>().sprite = null;
-            mfCardDissolve = 0f;
-            macFakeCards[0].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
 
+        //Check if Next card on the stack has moved into front card position
+        if (mfCycleDeckStopActivate >= 30f)
+        {
             //Remove the Active card from the deck
             macActiveDeck.Remove(macActiveDeck[mnActiveDeckTopCardPointer]);
 
-            if(mnActiveDeckTopCardPointer != 0)
+            if (mnActiveDeckTopCardPointer != 0)
             {
                 mnActiveDeckTopCardPointer += lnActiveTopCardAdjustment;
             }
@@ -496,6 +532,38 @@ public class DeckController : MonoBehaviour
             mbActivate = false;
         }
     } //End ActivateCardDisplayAdjust
+
+    //Coroutine to pop a card off of the deck when activated
+    IEnumerator PlayCardCoroutine()
+    {
+        int lnFakeCardIndex = mnFakeCardKeeper;
+        mnFakeCardKeeper++;
+
+        if(mnFakeCardKeeper == 5)
+        {
+            mnFakeCardKeeper = 0;
+        }
+
+        //Shift Fake card on top of current front card. it will either be added to hand or spent
+        AssignCardToDisplay(macFakeCards[lnFakeCardIndex], macActiveDeck[mnActiveDeckTopCardPointer]);
+
+        //TODO: Test pop card off of hand
+        macFakeCards[lnFakeCardIndex].GetComponent<Rigidbody2D>().gravityScale = 6;
+        macFakeCards[lnFakeCardIndex].GetComponent<Rigidbody2D>().AddForce(new Vector2(mfCardPopLeft, mfCardPopUp), ForceMode2D.Impulse);
+
+        //Wait for seconds
+        yield return new WaitForSeconds(0.5f);
+
+        //Clear Fake card 
+        macFakeCards[lnFakeCardIndex].GetComponent<SpriteRenderer>().sprite = null;
+        mfCardDissolve = 0f;
+        //macFakeCards[0].GetComponent<SpriteRenderer>().material.SetFloat("_DissolveAmount", mfCardDissolve);
+
+        macFakeCards[lnFakeCardIndex].GetComponent<Rigidbody2D>().gravityScale = 0;
+        macFakeCards[lnFakeCardIndex].GetComponent<Rigidbody2D>().velocity = Vector3.zero;
+        //Reset position
+        macFakeCards[lnFakeCardIndex].transform.position = DisplayCardsImages[mcFrontCardIndex].transform.position;
+    }
 
     /**
      * METHOD:: AddCardToHandDisplayAdjust 
@@ -640,9 +708,6 @@ public class DeckController : MonoBehaviour
         {
             CardShiftElapsedTime = 0;
 
-            //Add the card to the hand
-            macSleightCards.Add(macActiveDeck[mnActiveDeckTopCardPointer]);
-
             //Remove the Active card from the deck
             macActiveDeck.Remove(macActiveDeck[mnActiveDeckTopCardPointer]);
 
@@ -760,6 +825,9 @@ public class DeckController : MonoBehaviour
         if (mnActiveDeckTopCardPointer != (macActiveDeck.Count - 1) &&
             macSleightCards.Count < 5)
         {
+            //Add the card to the hand
+            macSleightCards.Add(macActiveDeck[mnActiveDeckTopCardPointer]);
+
             mbAddHandActivate = true;
             mbAddCardShiftActivate = true;
 

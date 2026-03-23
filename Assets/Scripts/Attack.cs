@@ -1,10 +1,14 @@
 using Deck;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
+using UnityEngine.Tilemaps;
 using static UnityEditor.Experimental.GraphView.PlacematContainer;
+using Color = UnityEngine.Color;
 
 public class Attack : MonoBehaviour
 {
@@ -21,9 +25,6 @@ public class Attack : MonoBehaviour
 
     //Reference to Enemy initiating the attack
     private EnemyAI mcEnemyAttacker;
-
-    //Player attack animation ID
-    AttackAnimationType meAttackAnimationType = AttackAnimationType.eeBasicSideAttack;
 
     //Enemy Hurt Box
     Rigidbody2D mcRigidBody;
@@ -43,7 +44,6 @@ public class Attack : MonoBehaviour
 
     //Time Tracker for attack 
     private float AttackElapsedTime = 0f;
-    private float AttackDelayTime = 0f;
 
     //Attack positions
     private Vector3 mcAttackOriginPosition;
@@ -57,9 +57,16 @@ public class Attack : MonoBehaviour
     //Attack Hitbox
     private GameObject mcChildHitbox;
 
+    //Collider used for attack on attack interaction
+    private GameObject mcHurtBox;
+
     //Tangible boxes used to allow player interaction with attack
     private GameObject mcGroundBox;
     private GameObject mcWallBox;
+
+    //Ground/Wall Layer masks
+    public LayerMask mcGroundLayer;
+    public LayerMask mcWallLayer;
 
     //Start Flag for attack
     private bool mbBeginAttack = false;
@@ -91,8 +98,13 @@ public class Attack : MonoBehaviour
 
     //Array of time that a specific effect is applied for.
     //Functions as both a flag indicating an effect is applied and the time it is applied for
-    float[] mafEffectAppliedTime = new float[(int)SuitEffect.eeSuitEffectEnd] 
+    float[] mafEffectAppliedTime = new float[(int)SuitEffect.eeSuitEffectEnd]
         {0, 0, 0, 0, 0, 0, 0};
+
+    //Pause Manager 
+    private PauseManager mcPauseManager;
+
+    private CameraController mcCameraController;
 
     void Start()
     {
@@ -104,11 +116,11 @@ public class Attack : MonoBehaviour
 
         foreach (Transform lcChild in transform)
         {
-            if(lcChild.name == "SmokeFX")
+            if (lcChild.name == "SmokeFX")
             {
                 mcSmokeFX = lcChild.gameObject;
             }
-            else if(lcChild.name == "HitBox")
+            else if (lcChild.name == "HitBox")
             {
                 mcChildHitbox = lcChild.gameObject;
             }
@@ -123,11 +135,21 @@ public class Attack : MonoBehaviour
             else if (lcChild.name == "HitBurst")
             {
                 mcStruckFx = Instantiate(lcChild.gameObject.GetComponent<ParticleSystem>());
+                mcStruckFx.transform.SetParent(this.transform);
+            }
+            else if (lcChild.name == "HurtBox")
+            {
+                mcHurtBox = lcChild.gameObject;
             }
         }
 
+        Physics2D.IgnoreCollision(mcChildHitbox.GetComponent<CapsuleCollider2D>(), mcHurtBox.GetComponent<CircleCollider2D>(), true);
+
         mcSpriteRenderer = GetComponent<SpriteRenderer>();
         mcSpriteRenderer.enabled = false;
+
+        mcPauseManager = GameObject.Find("PauseManager").GetComponent<PauseManager>();
+        mcCameraController = GameObject.Find("Virtual Camera").GetComponent<CameraController>();
 
     }
 
@@ -146,8 +168,10 @@ public class Attack : MonoBehaviour
     }
 
     //Catches collider overlaps for the attack
-    private void OnTriggerEnter2D(Collider2D lcCollision)
+    void OnTriggerEnter2D(Collider2D lcCollision)
     {
+        Vector3 lcHitboxPositon = mcChildHitbox.transform.position;
+
         Vector3 lcCollisionPosition = mcChildHitbox.transform.position;
 
         lcCollisionPosition = lcCollision.ClosestPoint(lcCollisionPosition);
@@ -156,23 +180,29 @@ public class Attack : MonoBehaviour
         {
             mcPlayerCollided = lcCollision.GetComponent<PlayerMovement>();
 
-            if(!mcPlayerCollided)
+            if (!mcPlayerCollided)
             {
                 Debug.Log("Couldnt find player collider");
             }
         }
-        else if (mbPlayerAttacker) 
+        else if (mbPlayerAttacker)
         {
             mcEnemyCollided = lcCollision.GetComponent<EnemyAI>();
         }
 
         bool lbStruckFighter = ((mbPlayerAttacker && mcEnemyCollided) || (mbEnemyAttacker && mcPlayerCollided));
-        bool lbStruckBorder = (lcCollision.name == "Walls" || lcCollision.name == "Ground");
+        bool lbStruckBorder = (lcCollision.name == "Walls" || lcCollision.name == "Ground" || lcCollision.name == "ExitWalls" 
+            || lcCollision.name == "ExitGround" || lcCollision.name == "DestructibleObject" || lcCollision.name == "PassThroughPlatforms");
+        bool lbStruckAttack = (lcCollision.name == "HurtBox");
 
         if (mbAttackOut)
         {
-
-            if (lbStruckFighter)
+            if(lbStruckAttack)
+            {
+                lcCollision.transform.parent.GetComponent<Attack>().AddForce(mcForceDirection, 200);
+                Debug.Log(this.name + " collided with attack " + lcCollision.transform.parent.name);
+            }
+            if (lbStruckFighter && !mcAttackAttributes.GetHitBoxIsTrigger())
             {
                 int lnAttackDamage = CalculateAttackDamage(mcAttackAttributes.GetAttackDamage());
 
@@ -180,6 +210,14 @@ public class Attack : MonoBehaviour
                 if (mbPlayerAttacker)
                 {
                     mcEnemyCollided.Damage(lnAttackDamage, 2f, meAttackDirection, mafEffectAppliedTime);
+
+                    //TODO: Set freeze frames to scale with damage
+                    //Freeze Frames
+                    if (lnAttackDamage > 50)
+                    {
+                        mcPauseManager.SetFreeze(0.2f);
+                        mcCameraController.SetZoom(0.2f);
+                    }
 
                     //TODO: Adjust attack movement 
                     if (meAttackDirection == AttackDirection.eeDownwards)
@@ -203,66 +241,57 @@ public class Attack : MonoBehaviour
                 }
             }
 
-            if(lbStruckFighter || lbStruckBorder)
-            {
-                //Trigger hit effect
-                mcStruckFx.transform.position = lcCollisionPosition;
-                mcStruckFx.transform.SetParent(null);
-                mcStruckFx.Play();
-            }
-
-            if(mcAttackAttributes.GetDisjointed() && (lbStruckBorder || lbStruckFighter))
+            if (mcAttackAttributes.GetDisjointed() && lbStruckBorder)
             {
                 //if sub Attack is generated at end of parent attacks life time
-                if (mcAttackAttributes.GetCreateSubAttackOnEnd() && mnNumSubAttacks != 0)
+                if (mcAttackAttributes.GetCreateSubAttackOnEnd())
                 {
-                    if(mcAttackAttributes.GetSubAttackDirection(meAttackDirection) == AttackDirection.eeBorderWards)
+                    AttackDirection lcSubAttackDirection = meAttackDirection;
+
+                    if (mcAttackAttributes.GetSubAttackDirection(meAttackDirection) == AttackDirection.eeBorderWards)
                     {
                         if (lbStruckBorder)
                         {
-                            AttackDirection lcStruckBorderAttackDirection = AttackDirection.eeRightward;
 
-                            if (lcCollision.name == "Walls")
+                            lcCollision.transform.GetComponent<CompositeCollider2D>().geometryType = CompositeCollider2D.GeometryType.Polygons;
+
+                            //Check positions in each cardinal direction from hit
+                            bool lbLeftOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x - 0.2f, lcCollisionPosition.y), new Vector2(0f, 0.3f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+
+                            bool lbRightOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x + 0.2f, lcCollisionPosition.y), new Vector2(0f, 0.3f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+
+                            bool lbUpOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y + 0.2f), new Vector2(0.3f, 0f),
+                                CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+
+                            bool lbDownOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y - 0.2f), new Vector2(0.3f, 0f),
+                                CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+
+                            //Determine attack orientation
+                            if (lbLeftOpen)
                             {
-                                //Collided with right wall
-                                if (lcCollisionPosition.x > transform.position.x)
-                                {
-                                    //90 Degree rotation
-                                    lcStruckBorderAttackDirection = AttackDirection.eeLeftward;
-
-                                    Debug.Log("Collided with Right wall");
-                                }
-                                //Collided with left wall
-                                else if (lcCollisionPosition.x < transform.position.x)
-                                {
-                                    //270 Degree rotation
-                                    lcStruckBorderAttackDirection = AttackDirection.eeRightward;
-
-                                    Debug.Log("Collided with Left wall");
-                                }
+                                lcSubAttackDirection = AttackDirection.eeLeftward;
                             }
-                            else if (lcCollision.name == "Ground")
+                            else if (lbRightOpen)
                             {
-                                //Collided with ceiling
-                                if (lcCollisionPosition.y > transform.position.y)
-                                {
-                                    //180 Degree rotation
-                                    lcStruckBorderAttackDirection = AttackDirection.eeDownwards;
-
-                                    Debug.Log("Collided with Ceiling");
-                                }
-                                //Collided with floor
-                                else if (lcCollisionPosition.y < transform.position.y)
-                                {
-                                    //0 degree rotation
-                                    lcStruckBorderAttackDirection = AttackDirection.eeUpwards;
-
-                                    Debug.Log("Collided with Ground");
-                                }
+                                lcSubAttackDirection = AttackDirection.eeRightward;
                             }
+                            else if (lbUpOpen)
+                            {
+                                lcSubAttackDirection = AttackDirection.eeUpwards;
+                            }
+                            else if (lbDownOpen)
+                            {
+                                lcSubAttackDirection = AttackDirection.eeDownwards;
+                            }
+
+                            Debug.Log("Borderwards Direction: " + lcSubAttackDirection);
+
+                            lcCollision.transform.GetComponent<CompositeCollider2D>().geometryType = CompositeCollider2D.GeometryType.Outlines;
 
                             //Sub Attack direction derived from parent attack direction
-                            GenerateSubAttack(lcStruckBorderAttackDirection, lcCollisionPosition);
+                            GenerateSubAttack(lcSubAttackDirection, lcCollisionPosition);
                         }
                     }
                     else
@@ -270,13 +299,29 @@ public class Attack : MonoBehaviour
                         //Sub Attack direction derived from parent attack direction
                         GenerateSubAttack(mcAttackAttributes.GetSubAttackDirection(meAttackDirection), lcCollisionPosition);
                     }
-                    mnNumSubAttacks--;
+                }
+            }
+
+            if (lbStruckFighter || lbStruckBorder || lbStruckAttack)
+            {
+                if(!mcAttackAttributes.GetHitBoxIsTrigger())
+                {
+                    //Trigger hit effect
+                    mcStruckFx.transform.position = lcCollisionPosition;
+                    mcStruckFx.transform.SetParent(null);
+                    mcStruckFx.Play();
                 }
 
-
                 //If piercing is not in effect destroy attack
-                if(mafEffectAppliedTime[(int)SuitEffect.eePierce] == 0)
+                if (mafEffectAppliedTime[(int)SuitEffect.eePierce] == 0 && !mcAttackAttributes.GetSingleAnimationLifetime())
                 {
+                    if (mcAttackAttributes.GetCreateSubAttackOnEnd() && lbStruckFighter 
+                        && mcAttackAttributes.GetSubAttackDirection(meAttackDirection) != AttackDirection.eeBorderWards)
+                    {
+                        //Sub Attack direction derived from parent attack direction
+                        GenerateSubAttack(mcAttackAttributes.GetSubAttackDirection(meAttackDirection), transform.position);
+                    }
+
                     EndAttack();
                 }
             }
@@ -302,6 +347,14 @@ public class Attack : MonoBehaviour
 
     public void BeginAttack()
     {
+        StartCoroutine(InitiateAttack());
+    }
+
+    private IEnumerator InitiateAttack()
+    {
+
+        yield return new WaitForSeconds(mcAttackAttributes.GetAttackDelay());
+
         mcAttackAnimator.speed = 0;
 
         //Play Animation
@@ -329,6 +382,8 @@ public class Attack : MonoBehaviour
         //Assign Attack Attributes
         mcAttackAttributes = pcAttackAttributes;
 
+        this.name = mcAttackAttributes.GetAttackName();
+
         //Check for secondary effects
         for (int lnEffects = 0; lnEffects < mcAttackAttributes.GetEffectChances().Length; lnEffects++)
         {
@@ -344,66 +399,32 @@ public class Attack : MonoBehaviour
 
         float lfAttackAngleDeg = 0;
 
-        if(mcAttackAttributes.GetMoveTowardsTarget())
+        //Auto corrects attack angle towards the target if flag set
+        if (mcAttackAttributes.GetMoveTowardsTarget())
         {
             meAttackDirection = AttackDirection.eeRightward;
 
             pfAdjustedAngle = GetAngleToClosestTarget();
         }
 
-        //Find attack end position
+        //Orient attack direction 
         switch (meAttackDirection)
         {
             case AttackDirection.eeLeftward:
                 lfAttackAngleDeg = 180 - pfAdjustedAngle;
                 transform.rotation = Quaternion.Euler(0, 0, -pfAdjustedAngle);
-
-                if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
-                }
-                else if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
-                }
                 break;
             case AttackDirection.eeRightward:
-
                 lfAttackAngleDeg += pfAdjustedAngle;
                 transform.rotation = Quaternion.Euler(0, 0, pfAdjustedAngle);
-
-                if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavySideAttack;
-                }
-                else if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeRanged)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeRangedSideAttack;
-                }
                 break;
             case AttackDirection.eeUpwards:
                 lfAttackAngleDeg = 90 + pfAdjustedAngle;
                 transform.rotation = Quaternion.Euler(0, 0, 90 + ((mcAttackAttributes.GetGroundOrigination()) ? 90 : 0) + pfAdjustedAngle);
-                if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavyUpAttack;
-                }
-                else
-                {
-                    meAttackAnimationType = AttackAnimationType.eeBasicUpAttack;
-                }
                 break;
             case AttackDirection.eeDownwards:
                 lfAttackAngleDeg = 270 - pfAdjustedAngle;
                 transform.rotation = Quaternion.Euler(0, 0, -90 + ((mcAttackAttributes.GetGroundOrigination()) ? 90 : 0) - pfAdjustedAngle);
-                if (mcAttackAttributes.GetPlayerAttackAnimation() == (int)PlayerAttackAnimation.eeHeavy)
-                {
-                    meAttackAnimationType = AttackAnimationType.eeHeavyDownAttack;
-                }
-                else
-                {
-                    meAttackAnimationType = AttackAnimationType.eeBasicDownAttack;
-                }
                 break;
 
         }
@@ -412,7 +433,7 @@ public class Attack : MonoBehaviour
         mcForceDirection = new Vector2(Mathf.Cos(Mathf.Deg2Rad * lfAttackAngleDeg), Mathf.Sin(Mathf.Deg2Rad * lfAttackAngleDeg));
 
         //Attack movement is set to end when reaching a specific point
-        mcAttackEndPosition = new Vector2(transform.position.x + (mcAttackAttributes.GetTravelDistance() * Mathf.Cos(Mathf.Deg2Rad * lfAttackAngleDeg)), 
+        mcAttackEndPosition = new Vector2(transform.position.x + (mcAttackAttributes.GetTravelDistance() * Mathf.Cos(Mathf.Deg2Rad * lfAttackAngleDeg)),
             transform.position.y + (mcAttackAttributes.GetTravelDistance() * Mathf.Sin(Mathf.Deg2Rad * lfAttackAngleDeg)));
     }
 
@@ -421,12 +442,12 @@ public class Attack : MonoBehaviour
     {
         float lfReturnAngle = 0;
 
-        Debug.Log("GetAngleToClosestTarget ");
+        //Debug.Log("GetAngleToClosestTarget ");
 
         if (mbEnemyAttacker)
         {
             lfReturnAngle = mcEnemyAttacker.GetAngleToClosestTarget();
-            Debug.Log("Attack Angle = " + lfReturnAngle);
+            //Debug.Log("Attack Angle = " + lfReturnAngle);
         }
 
         //TODO: Add function for player to auto target
@@ -453,11 +474,11 @@ public class Attack : MonoBehaviour
     {
 
         //If Attack has been started
-        if(mbBeginAttack && AttackDelayTime >= mcAttackAttributes.GetAttackDelay())
+        if (mbBeginAttack)
         {
 
             //Create any sub attacks if settings permit
-            if (mcAttackAttributes.GetHasSubAttack() && mnNumSubAttacks != 0 
+            if (mcAttackAttributes.GetHasSubAttack() && mnNumSubAttacks != 0
                 && !mcAttackAttributes.GetCreateSubAttackOnEnd())
             {
                 //Sub Attack direction derived from parent attack direction
@@ -470,19 +491,19 @@ public class Attack : MonoBehaviour
             {
                 mbAttackOut = true;
 
-                if (mcPlayerAttacker != null && mcAttackAttributes.GetAnimateAttacker())
-                {
-                    mcPlayerAttacker.SetAttackAnimationValue(meAttackAnimationType);
-                }
-
                 mcSpriteRenderer.enabled = true;
                 mcAttackAnimator.speed = 1;
                 smokeFX.Play();
 
                 mcChildHitbox.GetComponent<CapsuleCollider2D>().direction = mcAttackAttributes.GetAttackCapsuleColliderDirection();
-                mcChildHitbox.SetActive(true);
-                mbHitBoxActive = true;
+                
+                mbHitBoxActive = mcAttackAttributes.GetHasHitbox();
 
+                mcChildHitbox.SetActive(mbHitBoxActive);
+
+                //Set Color of burst when attack strikes object
+                var HitBurstPartMain = mcStruckFx.main;
+                HitBurstPartMain.startColor = mcAttackAttributes.GetParticleTrailColor();
 
                 if (mcAttackAttributes.GetParticleTrailEnabled())
                 {
@@ -499,6 +520,7 @@ public class Attack : MonoBehaviour
                 {
                     mcGroundBox.SetActive(true);
                     mcWallBox.SetActive(true);
+                    mcHurtBox.SetActive(true);
                 }
             }
 
@@ -510,6 +532,12 @@ public class Attack : MonoBehaviour
 
                 if (mcAnimationStateInfo.normalizedTime >= 1.0f)
                 {
+                    if(mcAttackAttributes.GetCreateSubAttackOnEnd() && mcAttackAttributes.GetSubAttackDirection(meAttackDirection) != AttackDirection.eeBorderWards)
+                    {
+                        //Sub Attack direction derived from parent attack direction
+                        GenerateSubAttack(mcAttackAttributes.GetSubAttackDirection(meAttackDirection), transform.position);
+                    }
+
                     EndAttack();
                 }
             }
@@ -520,27 +548,33 @@ public class Attack : MonoBehaviour
 
                 if (AttackElapsedTime >= mcAttackAttributes.GetLifeTime())
                 {
+                    if (mcAttackAttributes.GetCreateSubAttackOnEnd() && mcAttackAttributes.GetSubAttackDirection(meAttackDirection) != AttackDirection.eeBorderWards)
+                    {
+                        //Sub Attack direction derived from parent attack direction
+                        GenerateSubAttack(mcAttackAttributes.GetSubAttackDirection(meAttackDirection), transform.position);
+                    }
+
                     EndAttack();
                 }
             }
 
             //if attack has a set travel distance
-            if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeFixedDistance)
+            if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeFixedDistance && mcAttackAttributes.GetLifeTime() != 0)
             {
-                    //Move fake card to top of hand over time
-                    transform.position = Vector3.Lerp(mcAttackOriginPosition, mcAttackEndPosition,
-                        AttackElapsedTime / mcAttackAttributes.GetLifeTime());
+                //Move fake card to top of hand over time
+                transform.position = Vector3.Lerp(mcAttackOriginPosition, mcAttackEndPosition,
+                    AttackElapsedTime / mcAttackAttributes.GetLifeTime());
             }
-            else if(mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeForceApplied 
+            else if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeForceApplied
                 && mcRigidBody.bodyType != RigidbodyType2D.Dynamic)
-            {   
+            {
                 //TODO: Add mass and gravity to attack attributes
                 mcRigidBody.bodyType = RigidbodyType2D.Dynamic;
                 mcRigidBody.mass = 20;
                 mcRigidBody.gravityScale = 3;
                 mcRigidBody.AddForce(mcForceDirection * mcAttackAttributes.GetMovementForce() * 35, ForceMode2D.Impulse);
             }
-            else if(mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeNoMovement &&
+            else if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeNoMovement &&
                 mcRigidBody.bodyType != RigidbodyType2D.Static)
             {
                 //TODO Add sway
@@ -555,17 +589,25 @@ public class Attack : MonoBehaviour
             }
 
             //if Revolution flag set, then revolve around point
-            if(mcAttackAttributes.GetRevolveAround())
+            if (mcAttackAttributes.GetRevolveAround())
             {
                 //TODO: Revolution Rate
                 transform.RotateAround(transform.parent.transform.position, Vector3.forward,
                     2 * ((meAttackDirection == AttackDirection.eeLeftward) ? 1 : -1));
             }
         }
-        else if(mbBeginAttack)
-        {
-            AttackDelayTime += Time.deltaTime;
-        }
+    }
+
+    public void AddForce(Vector2 pcForceDirection, float pfKnockback)
+    {
+        Debug.Log("Force Direction: " + pcForceDirection);
+        mcRigidBody.velocity = Vector3.zero;
+        mcRigidBody.AddForce(pcForceDirection * pfKnockback, ForceMode2D.Impulse);
+    } 
+
+    public bool IsTangible()
+    {
+        return mcAttackAttributes.GetTangible();
     }
 
     public void GenerateSubAttack(AttackDirection peAttackDirection, Vector3 pcAttackOrigin)
@@ -613,13 +655,27 @@ public class Attack : MonoBehaviour
             mcSubAttackAttributes.SetDirection(peAttackDirection);
 
             //Assign Attack components
-            lcAttackComponent.SetAttacker(mcPlayerAttacker);
+            if (mbEnemyAttacker)
+            {
+                lcAttackComponent.SetAttacker(mcEnemyAttacker);
+            }
+            else if (mbPlayerAttacker)
+            {
+                lcAttackComponent.SetAttacker(mcPlayerAttacker);
+            }
+
             lcAttackComponent.SetAttributes(mcSubAttackAttributes, 0);
 
             //Lock attack to player if it is not disjointed
             if (!mcSubAttackAttributes.GetDisjointed())
             {
-                lcAttack.transform.SetParent(this.transform);
+                lcAttack.transform.SetParent(this.transform.parent);
+            }
+
+            //Sub Attack may have sub attack of its own
+            if (mcSubAttackAttributes.GetHasSubAttack())
+            {
+                lcAttackComponent.SetSubAttackAttributes(mcSubAttackAttributes.GetSubAttack());
             }
         }
         else
@@ -627,6 +683,10 @@ public class Attack : MonoBehaviour
             Debug.Log("Attack component is NULL");
         }
 
+        //reduce inherited Attack size from parent
+        lcAttack.transform.localScale /= mcAttackAttributes.GetAttackBaseSizeMultiplier();
+
+        //Multiply attack size by attribute multiplier
         lcAttack.transform.localScale *= mcSubAttackAttributes.GetAttackBaseSizeMultiplier();
 
         //Offsets derived from attack direction
