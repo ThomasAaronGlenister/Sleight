@@ -22,16 +22,16 @@ public class EnemyAttributesSet
         //Knight 0
         macEnemyDataSet.Add(new EnemyAttributes(
             "Knight",
-            30, // HealthPoints
-            0, //   ArmorPoints
-            4, //   MovementSpeed
+            40, // HealthPoints
+            20, //   ArmorPoints
+            4.5f, //   MovementSpeed
             13, //   JumpPower
             1, //   Mass
             2, //   GravityScale
             false, //   Flying
             7, //   Follow Distance
             2, //   Attack Distance
-            2, //   Attack Cooldown
+            0.5f, //   Attack Cooldown
             0.4f, // Lunge Y addition
             5, //   Lunge Multiplier
             2, //    Waypoint distance
@@ -66,6 +66,8 @@ public class EnemyAttributesSet
             5, //    Attack Damage
             0f //     Attack Windup
             ));
+
+        macEnemyDataSet[1].AddEnemyAttack(mcEnemyAttackDataSet.GetBaseAttackAttributes(2));
 
         //Chick 2
         macEnemyDataSet.Add(new EnemyAttributes(

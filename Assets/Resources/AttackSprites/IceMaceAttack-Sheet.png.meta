@@ -403,6 +403,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: IceMaceAttack-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 3906
+        y: 0
+        width: 279
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 870d945ec6d7ba44e92f313a17dee599
+      internalID: -889670589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IceMaceAttack-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 4185
+        y: 0
+        width: 279
+        height: 256
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93b3224f30aa52c47a7d3fa9ba0f0ede
+      internalID: -1750792994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -420,6 +462,8 @@ TextureImporter:
       IceMaceAttack-Sheet_11: -719963173
       IceMaceAttack-Sheet_12: 68602772
       IceMaceAttack-Sheet_13: -1634577735
+      IceMaceAttack-Sheet_14: -889670589
+      IceMaceAttack-Sheet_15: -1750792994
       IceMaceAttack-Sheet_2: -853975336
       IceMaceAttack-Sheet_3: -583893548
       IceMaceAttack-Sheet_4: 439731483

@@ -89,6 +89,8 @@ public class EnemyAttributes
     //List of attacks this enemy can perform
     List<AttackAttributes> macEnemyAttacks = new List<AttackAttributes>();
 
+    float[] macEnemyAttackAnimationLengths = new float [3];
+
     //Constructor
     public EnemyAttributes(
         String name,
@@ -169,14 +171,17 @@ public class EnemyAttributes
             else if(lcClip.name == mcEnemyName + "Attack")
             {
                 mcEnemyAttackAnimationClip = lcClip;
+                macEnemyAttackAnimationLengths[0] = lcClip.length;
             }
             else if (lcClip.name == mcEnemyName + "Attack2")
             {
                 mcEnemyAttack2AnimationClip = lcClip;
+                macEnemyAttackAnimationLengths[1] = lcClip.length;
             }
             else if (lcClip.name == mcEnemyName + "Attack3")
             {
                 mcEnemyAttack3AnimationClip = lcClip;
+                macEnemyAttackAnimationLengths[2] = lcClip.length;
             }
             else if (lcClip.name == mcEnemyName + "Damage")
             {
@@ -195,6 +200,12 @@ public class EnemyAttributes
                 mcEnemyIdleAnimationClip = lcClip;
             }
         }
+    }
+
+    //Returns the length of the animation clip associated with the enemy attack ID
+    public float GetEnemyAttackAnimationClipLength(int pnEnemyAttackId)
+    {
+        return macEnemyAttackAnimationLengths[pnEnemyAttackId - 1];
     }
 
     /**

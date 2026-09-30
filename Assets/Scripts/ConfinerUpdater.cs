@@ -33,8 +33,6 @@ public class ConfinerUpdater : MonoBehaviour
 
         pcCameraCollider.transform.position = pcConfinerPosition;
 
-        Debug.Log(pcCameraCollider.name + " position: " + pcConfinerPosition + " pos2: " + pcCameraCollider.transform.position);
-
         //Set Collider to be used by composite parent camera collider
         pcCameraCollider.GetComponent<PolygonCollider2D>().usedByComposite = true;
     }

@@ -57,9 +57,17 @@ public class AttackGenerator : MonoBehaviour
     public string mcAttackAnimationStringTest;
     public bool mbSingleAnimationAttackTest = false;
 
+    public float mfMovementForceTest = 0f;
+    public float mfMassTest = 0f;
+    public float mfGravityTest = 0f;
+
     public int mnNumInstancesTest = 0;
     public float mfAdjustedAngleTest = 0;
     public float mfAttackDelayTest = 0;
+    public float mfForceAmplifier = 0;
+
+    //Skill Manager
+    [SerializeField] private SkillManager mcSkillManager;
 
     /****************************************/
 
@@ -82,6 +90,8 @@ public class AttackGenerator : MonoBehaviour
         macDirectionVectors[(int)AttackDirection.eeLeftward] = Vector2.left;
         macDirectionVectors[(int)AttackDirection.eeUpwards] = Vector2.up;
         macDirectionVectors[(int)AttackDirection.eeDownwards] = Vector2.down;
+
+        mcSkillManager = GameObject.Find("SkillManager").GetComponent<SkillManager>();
     }
 
     public int CalculateAttackDamage(List<Card> pacAttackCards)
@@ -123,10 +133,13 @@ public class AttackGenerator : MonoBehaviour
 
         AttackAttributes lcAttackAttributes = mcPlayerAttackAttributes.GetBaseAttackAttributes(pacAttackCards);
 
+        mcSkillManager.EvaluateHandSkills(mcPlayerMovement, lcAttackAttributes);
+        mcSkillManager.EvaluateEffectSkills(lcAttackAttributes);
+
         /********************************************************/
 
         //TODO: REMOVE TEST
-        if(Test)
+        if (Test)
         {
             macTestCards.Clear();
 
@@ -435,6 +448,21 @@ public class AttackGenerator : MonoBehaviour
             mbSingleAnimationAttackTest = pcAttackAttributes.GetSingleAnimationLifetime();
         }
 
+        if(mfMovementForceTest == 0f)
+        {
+            mfMovementForceTest = pcAttackAttributes.GetMovementForce();
+        }
+
+        if (mfMassTest == 0f)
+        {
+            mfMassTest = pcAttackAttributes.GetMass();
+        }
+
+        if (mfGravityTest == 0f)
+        {
+            mfGravityTest = pcAttackAttributes.GetGravityScale();
+        }
+
         if (mcAttackAnimationStringTest.Length == 0)
         {
             mcAttackAnimationStringTest = pcAttackAttributes.GetAttackAnimationString();
@@ -455,6 +483,11 @@ public class AttackGenerator : MonoBehaviour
             mfAttackDelayTest = pcAttackAttributes.GetAttackDelay();
         }
 
+        if(mfForceAmplifier == 0)
+        {
+            mfForceAmplifier = pcAttackAttributes.GetAttackDelay();
+        }
+
 
         AttackAttributes lcAttackAtt = new AttackAttributes(
                 "TEST",
@@ -466,7 +499,7 @@ public class AttackGenerator : MonoBehaviour
                 mbDisjointedTest, mbRevolveAroundTest,
                 mfTravelDistanceTest,
                 mfTravelTimeTest,
-                pcAttackAttributes.GetMovementForce(),
+                mfMovementForceTest,
                 pcAttackAttributes.GetAttackMovementType(),
                 pcAttackAttributes.GetHasAnimationFlip(),
                 pcAttackAttributes.GetPlayerAttackAnimation(),
@@ -483,8 +516,8 @@ public class AttackGenerator : MonoBehaviour
                 pcAttackAttributes.GetTangible(),
                 mfAdjustedAngleTest,
                 mnNumInstancesTest,
-                pcAttackAttributes.GetMass(),
-                pcAttackAttributes.GetGravityScale(),
+                mfMassTest,
+                mfGravityTest,
                 mfAttackDelayTest,
                 pcAttackAttributes.GetCreateSubAttackOnEnd(),
                 pcAttackAttributes.GetSubAttackDirection(AttackDirection.eeRightward),
@@ -494,7 +527,9 @@ public class AttackGenerator : MonoBehaviour
                 pcAttackAttributes.GetMoveTowardsTarget(),
                 pcAttackAttributes.GetAnimateAttacker(),
                 pcAttackAttributes.GetKnockBack(),
-                pcAttackAttributes.GetHasHitbox()
+                pcAttackAttributes.GetHasHitbox(),
+                pcAttackAttributes.GetHitBoxIsTrigger(),
+                mfForceAmplifier
                 );
 
         lcAttackAtt.AddSubAttack(pcAttackAttributes.GetSubAttack());

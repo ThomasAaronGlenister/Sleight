@@ -11,8 +11,11 @@ using static UnityEngine.ParticleSystem;
  */
 public class LevelGrid
 {
-	//Struct to hold 2d coordinate system map of level layout
-	struct GridCoordinate <X, Y> : IEquatable<GridCoordinate<X, Y>>
+    //uninitialized gameobject used to block portions on the grid
+    GameObject mcBlockChamber;
+
+    //Struct to hold 2d coordinate system map of level layout
+    struct GridCoordinate <X, Y> : IEquatable<GridCoordinate<X, Y>>
 	{
 		readonly X mnX;
         readonly Y mnY;
@@ -69,6 +72,25 @@ public class LevelGrid
     public bool IsGridSectionFilled(int x, int y)
     {
         return macLevelGrid.ContainsKey(new GridCoordinate<int, int>(x, y));
+    }
+
+    public void BlockGridAxis(Vector2 pcBlockedSection)
+    {
+        if(pcBlockedSection.y == -1 || pcBlockedSection.y == 1)
+        {
+            for(int lnRange = -5; lnRange < 5; lnRange++)
+            {
+                macLevelGrid[new GridCoordinate<int, int>(lnRange, (int)pcBlockedSection.y)] = mcBlockChamber;
+            }
+        }
+
+        if(pcBlockedSection.x == -1 || pcBlockedSection.x == 1)
+        {
+            for (int lnRange = -5; lnRange < 5; lnRange++)
+            {
+                macLevelGrid[new GridCoordinate<int, int>((int)pcBlockedSection.x, lnRange)] = mcBlockChamber;
+            }
+        }
     }
 
 }

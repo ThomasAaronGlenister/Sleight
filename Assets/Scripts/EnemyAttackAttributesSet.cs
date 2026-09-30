@@ -93,8 +93,8 @@ public class EnemyAttackAttributesSet
             1,
             1,
             1,
-            0.35f,
-            true
+            0.35f, // Attack delay
+            true // Create sub attack on end
             ));
 
         macAttacksDataSet[0].SetEnemyAttackValues(0, 0, 0, 2, 0, 1, 1, 1, 1f);
@@ -170,7 +170,7 @@ public class EnemyAttackAttributesSet
             false
             ));
 
-        macAttacksDataSet[1].SetEnemyAttackValues(0, 0, 2, 4, 0, 3, 1, 1, 2f);
+        macAttacksDataSet[1].SetEnemyAttackValues(0, 0, 2, 4, 0, 3, 1, 1, 3f);
         macAttacksDataSet[1].SetEnemyAttackId(2);
 
         //Bat Bite attack 1
@@ -193,8 +193,22 @@ public class EnemyAttackAttributesSet
             "BatBiteAttack", //Attack string
             CapsuleDirection2D.Vertical, // Capsule direction
             false, // Partical Trail
-            Color.white // Particle Trail color
+            Color.white, // Particle Trail color
+            0,
+            false,
+            false,
+            false,
+            0,
+            false,
+            0,
+            1,
+            1,
+            1,
+            0.17f
             ));
+
+        macAttacksDataSet[2].SetEnemyAttackValues(0, 0, 0, 2, 0, 2, 1, 1);
+        macAttacksDataSet[2].SetEnemyAttackId(1);
 
         //Chick Fireball Attack 2
         macAttacksDataSet.Add(new AttackAttributes(

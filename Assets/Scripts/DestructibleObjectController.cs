@@ -23,29 +23,33 @@ public class DestructibleObjectController : MonoBehaviour
         
     }
 
+
     //Trigger for this Object
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log("DestructibleObject: Destroy");
-
-        float lfRandomAngle = 0;
-        int ForceMultiple = 0;
-
-        for (int lnPart = 0; lnPart < mnNumberofParticles; lnPart++)
+        if (collision.name == "HitBox")
         {
-            GameObject lcParticle = Instantiate(mcParticlePrefab, this.transform.position, Quaternion.Euler(0, Random.Range(0f, 360f), 0));
+            Debug.Log("DestructibleObject: Destroy");
 
-            lcParticle.GetComponent<SpriteRenderer>().sprite = TestSprite;
+            float lfRandomAngle = 0;
+            int ForceMultiple = 0;
 
-            lcParticle.transform.localScale *= Random.Range(0.5f, 2f);
+            for (int lnPart = 0; lnPart < mnNumberofParticles; lnPart++)
+            {
+                GameObject lcParticle = Instantiate(mcParticlePrefab, this.transform.position, Quaternion.Euler(0, Random.Range(0f, 360f), 0));
 
-            lfRandomAngle = Random.Range(-0.9f, 0.9f);
+                lcParticle.GetComponent<SpriteRenderer>().sprite = TestSprite;
 
-            ForceMultiple = Random.Range(ForceMulitplierMin, ForceMulitplierMax);
+                lcParticle.transform.localScale *= Random.Range(0.5f, 2f);
 
-            lcParticle.GetComponent<Rigidbody2D>().AddForce(new Vector2(lfRandomAngle, Mathf.Abs(lfRandomAngle)) * ForceMultiple, ForceMode2D.Impulse);
+                lfRandomAngle = Random.Range(-0.9f, 0.9f);
+
+                ForceMultiple = Random.Range(ForceMulitplierMin, ForceMulitplierMax);
+
+                lcParticle.GetComponent<Rigidbody2D>().AddForce(new Vector2(lfRandomAngle, Mathf.Abs(lfRandomAngle)) * ForceMultiple, ForceMode2D.Impulse);
+            }
+
+            Destroy(this.gameObject);
         }
-
-        Destroy(this.gameObject);
     }
 }

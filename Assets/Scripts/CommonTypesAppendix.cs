@@ -4,29 +4,6 @@ using UnityEngine;
 
 namespace Deck
 {
-    /****************** STRUCTS ************************/
-
-    //Struct Containing values applied to the attacker when an attack is initialized
-    public struct AttackForces
-    {
-        public AttackForces(float pfPogoForce = 0, float pfStrikeForceX = 0, float pfStrikeForceY = 0)
-        {
-            PogoForce = pfPogoForce;
-            StrikeForceX = pfStrikeForceX;
-            StrikeForceY = pfStrikeForceY;
-        }
-
-        public float PogoForce { get; }
-
-        //Force applied to the Attacker on the X axis on Hit
-        public float StrikeForceX { get; }
-
-        //Force applied to the Attacker on the Y axis on Hit
-        public float StrikeForceY { get; }
-    }
-
-    /****************** GLOBAL VARIABLES ************************/
-
 
     /****************** ENUMS ************************/
 
@@ -40,6 +17,14 @@ namespace Deck
         eeSpade,
         eeClover,
         eeDiamond,
+        eeDrop,
+        eeShield,
+        eeMind,
+        eeDecay,
+        eeWind,
+        eeTime,
+        eeShock,
+        eeStar,
         eeCardSuitEnd
     }
 
@@ -216,5 +201,39 @@ namespace Deck
         eeHealthTreasure = 1,
         eeCardTreasure = 2,
         eeSkillTreasure = 3
+    }
+
+    public enum SkillType
+    {
+        eeMovementSkill = 0,
+        eeHandSkill = 1,
+        eeEffectSkill = 2,
+        eeRandom = 3
+    }
+
+    public enum SkillRarity
+    {
+        eeCommonSkill = 0,
+        eeRareskill = 1,
+        eeEpicSkill = 2,
+        eeLegendarySkill = 3
+    }
+
+    public enum RewardType
+    {
+        eeDeckCardReward = 0,
+        eeSkillCardReward = 1,
+        eeMoneyReward = 2,
+        eeKeyReward = 3
+    }
+
+    public enum HandState
+    {
+        eeHandEmpty = 0,
+        eeHandPhase_1 = 1,
+        eeHandPhase_2 = 2,
+        eeHandPhase_3 = 3,
+        eeHandPhase_4 = 4,
+        eeHandPhase_5 = 5
     }
 }

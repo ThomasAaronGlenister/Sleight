@@ -103,7 +103,7 @@ public class EnemyAI : MonoBehaviour
     public float mfHorizontalMovementMultiplier = 1;
 
     //Defines the next Direction the enemy should move to while idling
-    private Vector2 mcIdleDirection = Vector2.right;
+    private Vector2 mcIdleDirection = new Vector2(1,1);
 
     // Start is called before the first frame update
     void Start()
@@ -235,18 +235,9 @@ public class EnemyAI : MonoBehaviour
     //METHOD:: Receives Damage input to the enemy
     public void Damage(int pnDamageAmount, float pnKnockBack, AttackDirection peAttackDirection, float[] pafEffects)
     {
-        mnHealthPoints -= pnDamageAmount;
+        SetSuitEffects(pafEffects);
 
-        if (mnHealthPoints <= 0)
-        {
-            StartCoroutine(Defeated());
-        }
-        else
-        {
-            SetSuitEffects(pafEffects);
-
-            StartCoroutine(TakeDamage());
-        }
+        StartCoroutine(TakeDamage(pnDamageAmount, pnKnockBack));
     }
 
     //Method to set Attack Effect durations on damage
@@ -286,7 +277,7 @@ public class EnemyAI : MonoBehaviour
 
         mcAnimator.SetInteger("EnemyState", pcAttackToPerform.GetEnemyAttackId());
 
-        mcRigidBody.velocity = Vector3.zero;
+        mcRigidBody.velocity = new Vector2(0, mcRigidBody.velocity.y);
 
         //Get enemy attack based on distances to target and enemy position
         //Pass attack card set along with direction to attack generator
@@ -294,15 +285,16 @@ public class EnemyAI : MonoBehaviour
 
         AnimatorStateInfo stateInfo = mcAnimator.GetCurrentAnimatorStateInfo(0);
 
-        yield return new WaitForSeconds(mcEnemyAttributes.GetEnemyAttack2AnimationClip().length);
+        yield return new WaitForSeconds(mcEnemyAttributes.GetEnemyAttackAnimationClipLength(pcAttackToPerform.GetEnemyAttackId()));
 
-        Debug.Log("Attack Animation NAME: " + mcEnemyAttributes.GetEnemyAttack2AnimationClip().name + " length " + mcEnemyAttributes.GetEnemyAttack2AnimationClip().length);
+        Debug.Log("Attack Animation ID: " + pcAttackToPerform.GetEnemyAttackId() + " length " + mcEnemyAttributes.GetEnemyAttackAnimationClipLength(pcAttackToPerform.GetEnemyAttackId()));
 
         //set cool down time back to zero
         mfAttackCoolDownElapsedTime = 0;
 
         meUpdateEnemyState = EnemyState.eeEnemyIdle;
 
+        mbLockMovement = false;
 
         mcAnimator.SetInteger("EnemyState",(int) meUpdateEnemyState);
     }
@@ -326,69 +318,67 @@ public class EnemyAI : MonoBehaviour
     /*
      * METHOD: Coroutine to Take Damage function called to update enemy health and apply knockback
      */
-    private IEnumerator TakeDamage()
+    private IEnumerator TakeDamage(int pnDamageAmount, float pnKnockBack)
     {
-        if (meUpdateEnemyState == EnemyState.eeEnemyAttack)
+        //If enemy has armor points then no knock back 
+        if(mnArmorPoints > 0)
         {
-            //StopCoroutine(Attack());
+            mnArmorPoints -= pnDamageAmount;
+            mcSpriteRenderer.color = Color.yellow;
+            yield return new WaitForSeconds(0.2f);
+            mcSpriteRenderer.color = mcOriginalColor;
 
-            mcAttackGenerator.CancelAttacks();
         }
-
-        meUpdateEnemyState = EnemyState.eeEnemyKnockback;
-
-        mfAttackCoolDownElapsedTime = 0;
-
-        mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyKnockback);
-        mcRigidBody.velocity = Vector3.zero;
-        yield return null;
-
-        //Direction is Waypoint minus the current enemy position
-        Vector2 lcDirection = (transform.position - mcTarget.position).normalized;
-
-        //TODO: Add KnockBack to attack attributes
-        lcDirection.y += 0.5f; 
-
-        mcRigidBody.AddForce(lcDirection * 2, ForceMode2D.Impulse);
-
-        mcSpriteRenderer.color = Color.red;
-
-        //TODO: Set to attacks stun time
-        yield return new WaitForSeconds(0.2f);
-        mcSpriteRenderer.color = mcOriginalColor;
-
-        mcRigidBody.velocity = new Vector2(0,0);
-
-        meUpdateEnemyState = EnemyState.eeEnemyIdle;
-        mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyIdle);
-    }
-
-    /*
-     * METHOD: Coroutine called to initiate end of enemy object
-     */
-    private IEnumerator Defeated()
-    {
-        meUpdateEnemyState = EnemyState.eeEnemyKnockback;
-
-        //Direction is Waypoint minus the current enemy position
-        Vector2 lcDirection = (transform.position - mcTarget.position).normalized;
-
-        //TODO: Add KnockBack to attack attributes
-        lcDirection.y += 0.5f;
-
-        mcRigidBody.AddForce(lcDirection * 2, ForceMode2D.Impulse);
-
-        float lfDissolve = 0f;
-        while (lfDissolve < 1f)
+        //Else remove health points
+        else
         {
-            lfDissolve += 0.01f;
-            mcSpriteRenderer.material.SetFloat("_DissolveAmount", lfDissolve);
+            mnHealthPoints -= pnDamageAmount;
+
+            if (meUpdateEnemyState == EnemyState.eeEnemyAttack)
+            {
+                //StopCoroutine(Attack());
+
+                mcAttackGenerator.CancelAttacks();
+            }
+
+            meUpdateEnemyState = EnemyState.eeEnemyKnockback;
+
+            mfAttackCoolDownElapsedTime = 0;
+
+            mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyKnockback);
+            mcRigidBody.velocity = Vector3.zero;
             yield return null;
+
+            //Direction is Waypoint minus the current enemy position
+            Vector2 lcDirection = (transform.position - mcTarget.position).normalized;
+
+            //TODO: Add KnockBack to attack attributes
+            lcDirection.y += 0.5f;
+
+            mcRigidBody.AddForce(lcDirection * 2, ForceMode2D.Impulse);
+
+            mcSpriteRenderer.color = Color.red;
+
+            if (mnHealthPoints <= 0)
+            {
+                float lfDissolve = 0f;
+                while (lfDissolve < 1f)
+                {
+                    lfDissolve += 0.01f;
+                    mcSpriteRenderer.material.SetFloat("_DissolveAmount", lfDissolve);
+                    yield return null;
+                }
+
+                Destroy(gameObject);
+            }
+
+            //TODO: Set to attacks stun time
+            yield return new WaitForSeconds(0.2f);
+            mcSpriteRenderer.color = mcOriginalColor;
+
+            meUpdateEnemyState = EnemyState.eeEnemyIdle;
+            mcAnimator.SetInteger("EnemyState", (int)EnemyState.eeEnemyIdle);
         }
-
-        yield return null;
-
-        Destroy(gameObject);
     }
 
     /*
@@ -484,18 +474,28 @@ public class EnemyAI : MonoBehaviour
             {
                 if(mfDistanceToWall < 1)
                 {
-                    mcIdleDirection *= -1;
+                    mcIdleDirection.x *= -1;
                 }
                 else
                 {
-                    mcIdleDirection = new Vector2((UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1), mcRigidBody.velocity.y);
+                    mcIdleDirection.x *= (UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1);
+                }
+
+                if (mfDistanceToGround < 1)
+                {
+                    mcIdleDirection.y *= -1;
+                }
+                else
+                {
+                    mcIdleDirection.y *= (UnityEngine.Random.Range(0, 2) == 0 ? -1 : 1);
                 }
 
                 mfIdleCoolDownElapsedTime = 0;
 
             }
 
-            mcRigidBody.velocity = new Vector2 (mcIdleDirection.x * mcEnemyAttributes.GetIdleMovementSpeed(), mcRigidBody.velocity.y);
+            mcRigidBody.velocity = new Vector2 (mcIdleDirection.x * mcEnemyAttributes.GetIdleMovementSpeed(), 
+                (mcEnemyAttributes.GetFlyingEnemy()) ? mcIdleDirection.y * mcEnemyAttributes.GetIdleMovementSpeed() : mcRigidBody.velocity.y);
 
             //Check if enemy is facing correct way
             Flip();
@@ -523,15 +523,12 @@ public class EnemyAI : MonoBehaviour
             else if(mfAttackCoolDownElapsedTime < mcEnemyAttributes.GetAttackCooldown())
             {
                 //flip if velocity changes direction
-                if (isFacingRight && mcTarget.position.x < transform.position.x || mcTarget.position.x > transform.position.x)
+                if ((isFacingRight && mcTarget.position.x < transform.position.x) || (!isFacingRight && mcTarget.position.x > transform.position.x))
                 {
                     isFacingRight = !isFacingRight;
                     Vector3 ls = transform.localScale;
                     ls.x *= -1f;
                     transform.localScale = ls;
-
-                    mbFacingAwayFromTarget = (isFacingRight && mcRigidBody.position.x > mcTarget.position.x) ||
-                       (!isFacingRight && mcRigidBody.position.x < mcTarget.position.x);
                 }
                 mcRigidBody.velocity = new Vector2(0, mcRigidBody.velocity.y);
                 mcAnimator.SetInteger("EnemyState", (int) EnemyState.eeEnemyWait);

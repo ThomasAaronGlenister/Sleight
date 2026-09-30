@@ -1,14 +1,18 @@
 ﻿using System;
 using UnityEngine;
 using Deck;
+using static UnityEditor.ShaderData;
+using Unity.VisualScripting;
 
 public class AttackAttributes
 {
     //Name of the attack
     private String mcAttackName = "";
 
-    //Attack Damage
+    //Attack Damage and additions
     private int mnAttackDamage = 0;
+    private int mnDamageAddition = 0;
+    private int mnDamageMulitplier = 1;
 
     // Horizontal space offset for the Attack
     private float mfHorizontalOffset = 0;
@@ -63,9 +67,6 @@ public class AttackAttributes
 
     //String identifier for attack animation
     private string mcAttackAnimationString;
-
-    //Set of forces that may be applied to the attacker during the attack
-    private AttackForces msAttackForces;
 
     //Direction this attacks hit box capsule is set to
     private CapsuleDirection2D meAttackCapsuleColliderDirection;
@@ -130,6 +131,9 @@ public class AttackAttributes
     //Sets whether this attacks hitbox is purely used as a trigger
     private bool mbHitBoxIsTrigger = false;
 
+    //Force multiplier applied to Attack every update
+    private float mfForceAmplifier = 0f;
+
     /********************************ENEMY ATTACK************************************/
     //Attack values used for Enemy AI to use certain attacks
 
@@ -155,6 +159,9 @@ public class AttackAttributes
 
     //Floating point time frame for next time this attack can be performed
     private float mfCoolDownTime;
+
+    //Maintains time from each consecutive bound check
+    private float mfCoolDownTimeDifference = 0;
 
     /** 
      * Integer value determining chance for this attack to be performed over others.
@@ -224,7 +231,8 @@ public class AttackAttributes
         bool pbAnimateAttacker = true,
         float pfKnockBack = 0,
         bool pbHasHitbox = true,
-        bool pbHitBoxIsTrigger = false
+        bool pbHitBoxIsTrigger = false,
+        float pfForceAmplifier = 0
         )
     {
         mcAttackName = pcAttackName;
@@ -282,6 +290,7 @@ public class AttackAttributes
         mfKnockBack = pfKnockBack;
         mbHasHitbox = pbHasHitbox;
         mbHitBoxIsTrigger = pbHitBoxIsTrigger;
+        mfForceAmplifier = pfForceAmplifier;
     }
 
     //Sets the attack range and chance values for enemy attacks
@@ -340,7 +349,13 @@ public class AttackAttributes
             pfTargetPositionX >= mfTargetMinRangeX && pfTargetPositionX <= mfTargetMaxRangeX &&
             pfTargetPositionY >= mfTargetMinRangeY && pfTargetPositionY <= mfTargetMaxRangeY)
         {
-            lbWithinBounds = true;
+            //If Time difference 
+            if(Time.time - mfCoolDownTimeDifference > mfCoolDownTime)
+            {
+                lbWithinBounds = true;
+
+                mfCoolDownTimeDifference = Time.time;
+            }
         }
         return lbWithinBounds;
     }
@@ -352,6 +367,15 @@ public class AttackAttributes
         {
             manSuitEffectPercentages[lnEffect] = panEffectChances[lnEffect];
         }
+    }
+
+    //Method to assign Effect chances to attack attributes
+    public void AddEffectSkillAdjustments(int pnEffectId, int pnEffectChanceAddition = 0, int pnEffectChanceMultiplier = 1)
+    {
+        manSuitEffectPercentages[pnEffectId] = (manSuitEffectPercentages[pnEffectId] + pnEffectChanceAddition)
+            * pnEffectChanceMultiplier;
+
+        //Debug.Log((SuitEffect) pnEffectId + " Chance " + manSuitEffectPercentages[pnEffectId] + " % ");
     }
 
     //Effect chances getter
@@ -435,9 +459,21 @@ public class AttackAttributes
     public void SetAttackDamage(int pnDamage)
     { mnAttackDamage = pnDamage; }
 
+    //Attack Addition setter
+    public void SetAttackAddition(int pnAttackAddition)
+    {
+        mnDamageAddition = pnAttackAddition;
+    }
+
+    //Attack Mulitplier setter
+    public void SetAttackMuliplier(int pnAttackMultiplier)
+    {
+        mnDamageMulitplier = pnAttackMultiplier;
+    }
+
     //Attack Damage getter
     public int GetAttackDamage()
-    { return mnAttackDamage; }
+    { return (mnAttackDamage + mnDamageAddition) * mnDamageMulitplier; }
 
     //Capsule collider direction getter
     public CapsuleDirection2D GetAttackCapsuleColliderDirection()
@@ -515,6 +551,11 @@ public class AttackAttributes
         return mbHitBoxIsTrigger;
     }
 
+    public float GetForceAmplifier()
+    {
+        return mfForceAmplifier;
+    }
+
     public bool GetMoveTowardsTarget()
     { return mbMoveTowardsTarget; }
 
@@ -561,4 +602,52 @@ public class AttackAttributes
     //Knock back getter
     public float GetKnockBack()
     { return mfKnockBack; }
+
+    public string GetString()
+    {
+        string lbReturn = mcAttackName + "," +
+                mfHorizontalOffset + "," +
+                mfVerticalOffset + "," +
+                mfSideAttackOffset + "," +
+                mfUpDownAttackOffset + "," +
+                mfAttackBaseSizeMultiplier + "," +
+                (mbDisjointed ? 1 : 0) + "," +
+                (mbRevolveAround ? 1 : 0) + "," +
+                mfTravelDistance + "," +
+                mfLifeTime + "," +
+                mfMovementForce + "," +
+                (int)meAttackMovement + "," +
+                (mbHasAnimationFlip ? 1 : 0) + "," +
+                mnAttackerAnimation + "," +
+                (mbSingleAnimationAttack ? 1 : 0) + "," +
+                mcAttackAnimationString + "," +
+                (int)meAttackCapsuleColliderDirection + "," +
+                (mbParticleTrailEnabled ? 1 : 0) + "," +
+                mcParticleTrailColor.ToHexString() + "," +
+                mfRotationRate + "," +
+                (mbGroundOrigination ? 1 : 0) + "," +
+                (mbWallOrigination ? 1 : 0) + "," +
+                (mbHasSubAttack ? 1 : 0) + "," +
+                mnSubAttackIndex + "," +
+                (mbTangible ? 1 : 0) + "," +
+                mfAdjustedAngle + "," +
+                mnNumberOfInstances + "," +
+                mfMass + "," +
+                mfGravityScale + "," +
+                mfAttackDelay + "," +
+                (mbCreateSubAttackOnEnd ? 1 : 0) + "," +
+                (int)mcSubAttackDirectionOnRight + "," +
+                (int)mcSubAttackDirectionOnLeft + "," +
+                (int)mcSubAttackDirectionOnUp + "," +
+                (int)mcSubAttackDirectionOnDown + "," +
+                (mbMoveTowardsTarget ? 1 : 0) + "," +
+                (mbAnimateAttacker ? 1 : 0) + "," +
+                mfKnockBack + "," +
+                (mbHasHitbox ? 1 : 0) + "," +
+                (mbHitBoxIsTrigger ? 1 : 0) + "," +
+                mfForceAmplifier 
+                ;
+
+        return lbReturn;
+    }
 }

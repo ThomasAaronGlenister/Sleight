@@ -31,7 +31,7 @@ TagManager:
   - Camera
   - Destructible
   - Interactables
-  - 
+  - Map
   - 
   - 
   - 
@@ -67,9 +67,6 @@ TagManager:
   - name: AttackBack
     uniqueID: 109209469
     locked: 0
-  - name: Particles
-    uniqueID: 2895635313
-    locked: 0
   - name: PassThroughPlatform
     uniqueID: 619248301
     locked: 0
@@ -78,6 +75,12 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 3040848057
+    locked: 0
+  - name: AttackFront
+    uniqueID: 1765247659
+    locked: 0
+  - name: Particles
+    uniqueID: 2895635313
     locked: 0
   - name: Destructibles
     uniqueID: 2630184047
@@ -90,6 +93,9 @@ TagManager:
     locked: 0
   - name: Walls
     uniqueID: 601249917
+    locked: 0
+  - name: CardReward
+    uniqueID: 1523384611
     locked: 0
   - name: DeckCards
     uniqueID: 722848077
@@ -126,4 +132,7 @@ TagManager:
     locked: 0
   - name: UI2
     uniqueID: 356859301
+    locked: 0
+  - name: Map
+    uniqueID: 4086082611
     locked: 0

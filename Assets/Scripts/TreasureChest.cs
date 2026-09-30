@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TreasureChest : MonoBehaviour
 {
-    TreasureType meTreasureType = TreasureType.eeCoinTreasure;
+    TreasureType meTreasureType = TreasureType.eeCardTreasure;
 
     //Sprite used to convey the chest has opened
     [SerializeField] private Sprite mcOpenedSprite;

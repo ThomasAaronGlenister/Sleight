@@ -113,7 +113,6 @@ public class PlayerMovement : MonoBehaviour
     //Reference to Level Manager used to change chambers
     LevelManager mcLevelManagerAccess;
 
-
     //Player Placement booleans
     bool isWallJumping;
     bool isFacingRight = true;
@@ -122,8 +121,6 @@ public class PlayerMovement : MonoBehaviour
     public float maxMoveSpeed = 60f;
 
     private bool mbMovementProhibited = false;
-
-    private bool mbChamberTransitionComplete = true;
 
     private ChamberSize meCurrentChamberSize = ChamberSize.eeDefault;
 
@@ -158,9 +155,6 @@ public class PlayerMovement : MonoBehaviour
 
     private bool mbTakingDamage = false;
 
-    //Time the player is invulerable after taking damage
-    private float mrInvulnerabilityTime = 0.2f;
-
     //Set of Vectors that define cardinal directions
     public Vector2[] macDirectionVectors = new Vector2[4];
 
@@ -172,9 +166,31 @@ public class PlayerMovement : MonoBehaviour
     //Camera Controller used for various effects
     [SerializeField] private CameraController mcCameraController;
 
+    //Movement Skill Checks
+    private bool mbDodgeRollEnabled = false;
+    private bool mbDoubleJumpEnabled = false;
+    private bool mbDashEnabled = false;
+    private bool mbWallClingEnabled = false;
+
+    //Used to rotate the world 
+    public int mnWorldMapOrientation = 0;
+    public bool mbRotateWorld = false;
+
+    //flag indicating if map is open
+    private bool mbMapOpen = false;
+
+    //Flag indicating if the player is in front of a door
+    private bool mbDoorOverlap = false;
+
+    [SerializeField] private MapCameraController mcMapCameraController;
+
+    private Transform mcOverlapDoor = null;
+
     // Start is called before the first frame update
     void Start()
     {
+        //Time.timeScale = 0.2f;
+
         animator = GetComponent<Animator>();
 
         mcLevelManagerAccess = GameObject.Find("LevelManager").GetComponent<LevelManager>();
@@ -191,7 +207,7 @@ public class PlayerMovement : MonoBehaviour
 
         mcDashTrail = GetComponent<TrailRenderer>();
 
-        mfPlayerBoxColliderSizeY = GetComponent<BoxCollider2D>().size.y;
+        mfPlayerBoxColliderSizeY = GetComponent<CapsuleCollider2D>().size.y;
 
         mcPlayerHealthBarAnimator = mcPlayerHealthBar.GetComponent<Animator>();
         mcPlayerHealthBarAnimator.SetFloat("HealthBarSpeed", 0);
@@ -211,19 +227,6 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        ChamberExits lePotentialExit = ChamberTransitionCheck();
-
-        //If player meets bounds of Chamber
-        if (lePotentialExit != ChamberExits.eeNone && mbChamberTransitionComplete)
-        {
-            mbChamberTransitionComplete = false;
-            //Trigger Chamber transition routine
-
-            var lcNextChamberAttributes = mcLevelManagerAccess.ChangeChamber(GetCheckExitTaken(lePotentialExit));
-            StartCoroutine(ChangeChamberCoroutine(lcNextChamberAttributes.Item1, lcNextChamberAttributes.Item2, lePotentialExit == ChamberExits.eeTop));
-        }
-
         if (UpdateDisplayHealth)
         {
             UpdateDisplayedHealth(HealthChange);
@@ -288,6 +291,38 @@ public class PlayerMovement : MonoBehaviour
             animator.SetTrigger("Reset");
         }
 
+    }
+
+    //METHOD:: Heals player health
+    public void Heal(int pnHealAmount)
+    {
+
+    }
+
+    //Enables the dodge roll
+    public void PlayEnterDoor()
+    {
+        animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        animator.Play("PlayerEnterDoor");
+    }
+
+    public void PlayTurn(bool pfClockwiseRotation = false)
+    {
+        //Flip player sprite depending on current flip and direction of rotation
+        if((pfClockwiseRotation && isFacingRight) || (!pfClockwiseRotation && !isFacingRight))
+        {
+            isFacingRight = !isFacingRight;
+            Vector3 ls = transform.localScale;
+            ls.x *= -1f;
+            transform.localScale = ls;
+        }
+
+        animator.Play("PlayerTurn");
+    }
+
+    public void SetPlayerAnimatorScaledTime()
+    {
+        animator.updateMode = AnimatorUpdateMode.Normal;
     }
 
     //METHOD:: Receives Damage input to the player
@@ -369,23 +404,62 @@ public class PlayerMovement : MonoBehaviour
     //Function to Move player
     public void Move(InputAction.CallbackContext context)
     {
-        horizontalMovement = context.ReadValue<Vector2>().x;
+        if(mbMapOpen)
+        {
+            mcMapCameraController.ShiftCamera(context.ReadValue<Vector2>());
+        }
+        else
+        {
+            horizontalMovement = context.ReadValue<Vector2>().x;
+        }
     }
 
     //Function to Move player
+    public void RotateCamera(InputAction.CallbackContext context)
+    {
+        if (mbMapOpen)
+        {
+            //Check Dead zones
+            Vector2 lcRotateStick = context.ReadValue<Vector2>();
+            if(lcRotateStick.y < 0.5 && lcRotateStick.y > -0.5)
+            {
+                lcRotateStick.y = 0;
+            }
+
+            if (lcRotateStick.x < 0.5 && lcRotateStick.x > -0.5)
+            {
+                lcRotateStick.x = 0;
+            }
+            mcMapCameraController.RotateCamera(lcRotateStick);
+        }
+    }
+
+    //Enables the dash
+    public void EnableDash(bool pbCanDash)
+    {
+        mbDashEnabled = pbCanDash;
+    }
+
+    //Function to make player dash
     public void Dash(InputAction.CallbackContext context)
     {
-        if(context.performed && mbCanDash)
+        if(context.performed && mbCanDash && mbDashEnabled)
         {
             StartCoroutine(DashCoroutine());
         }
+    }
+
+    //Enables the dodge roll
+    public void EnableDodgeRoll(bool pbCanRoll)
+    {
+        mbDodgeRollEnabled = pbCanRoll;
     }
 
     //Function to Roll player
     public void Roll(InputAction.CallbackContext context)
     {
         //Only can roll if character is grounded
-        if (context.performed && mbCanRoll && grounded)
+        if (context.performed && mbCanRoll && grounded && mbDodgeRollEnabled)
         {
             StartCoroutine(RollCoroutine());
         }
@@ -450,17 +524,47 @@ public class PlayerMovement : MonoBehaviour
 
     public void ShiftDeckCounterClockWise(InputAction.CallbackContext context)
     {
-        if(context.performed)
+        if (context.canceled)
         {
-            DeckControllerAccess.ShiftDeckAction(true);
+            if (mbMapOpen)
+            {
+                mcMapCameraController.ZoomCamera(false, false);
+            }
+        }
+
+        if (context.performed)
+        {
+            if (mbMapOpen)
+            {
+                mcMapCameraController.ZoomCamera(true, false);
+            }
+            else
+            {
+                DeckControllerAccess.ShiftDeckAction(true);
+            }
         }
     }
 
     public void ShiftDeckClockWise(InputAction.CallbackContext context)
     {
+        if(context.canceled)
+        {
+            if (mbMapOpen)
+            {
+                mcMapCameraController.ZoomCamera(false, true);
+            }
+        }
+
         if (context.performed)
         {
-            DeckControllerAccess.ShiftDeckAction(false);
+            if (mbMapOpen)
+            {
+                mcMapCameraController.ZoomCamera(true, true);
+            }
+            else
+            {
+                DeckControllerAccess.ShiftDeckAction(false);
+            }
         }
     }
 
@@ -469,6 +573,14 @@ public class PlayerMovement : MonoBehaviour
         if(context.performed && grounded)
         {
             mcCurrentChamber.PassThroughPlatform();
+        }
+    }
+
+    public void EnterDoor(InputAction.CallbackContext context)
+    {
+        if (context.performed && grounded && mbDoorOverlap && mcOverlapDoor != null)
+        {
+            mcLevelManagerAccess.EnterNewArea(transform, mcCurrentChamber, mcOverlapDoor);
         }
     }
 
@@ -545,7 +657,17 @@ public class PlayerMovement : MonoBehaviour
     {
         if (context.performed)
         {
+            mbMapOpen = !mbMapOpen;
             MapControllerAccess.MapSwitch();
+
+            if(mbMapOpen)
+            {
+                HandControllerAccess.OpenMap();
+            }
+            else
+            {
+                HandControllerAccess.CloseMap();
+            }
         }
     }
 
@@ -556,8 +678,6 @@ public class PlayerMovement : MonoBehaviour
         {
             if (DeckControllerAccess.IncrementHand())
             {
-                HandControllerAccess.AnimateHand();
-
                 TextMeshPro lcTextMeshPro = mcAttackHandNameDisplay.GetComponent<TextMeshPro>();
 
                 if (lcTextMeshPro)
@@ -567,8 +687,12 @@ public class PlayerMovement : MonoBehaviour
                     //Get Attack Attributes from Attack Generator
                     AttackAttributes lcHandAttributes = mcAttackGenerator.GetAttackAttributes(DeckControllerAccess.GetAttackCards());
 
-                    lcHandText += lcHandAttributes.GetAttackName() + "   " +
-                         mcAttackGenerator.CalculateAttackDamage(DeckControllerAccess.GetAttackCards());
+                    int lnAttackDamage = mcAttackGenerator.CalculateAttackDamage(DeckControllerAccess.GetAttackCards());
+
+                    //Animate hand
+                    HandControllerAccess.DrawCard(lnAttackDamage);
+
+                    lcHandText += lcHandAttributes.GetAttackName() + "   " + lnAttackDamage;
 
                     //Get Attack Effect Percentages
                     for (int lnEffectChance = 0; lnEffectChance < (int)SuitEffect.eeSuitEffectEnd; lnEffectChance++)
@@ -586,6 +710,12 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    //Gets the hand of the player 
+    public List<Card> GetPlayerHand()
+    {
+        return DeckControllerAccess.GetAttackCards();
+    }
+
     public void Gravity()
     {
         if (rb.velocity.y < 0)
@@ -599,10 +729,16 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    //Enables the wall slide/jump
+    public void EnableWallSlide(bool pbCanWallSlide)
+    {
+        mbWallClingEnabled = pbCanWallSlide;
+    }
+
     public void WallSlide()
     {
         //Not grounded & On a wall & movement != 0
-        if (!grounded & WallCheck() & horizontalMovement != 0)
+        if (!grounded & WallCheck() & horizontalMovement != 0 && mbWallClingEnabled)
         {
             isWallSliding = true;
             smokeFX.Play();
@@ -635,6 +771,12 @@ public class PlayerMovement : MonoBehaviour
         isWallJumping = false;
     }
 
+    //Enables the wall slide/jump
+    public void EnableDoubleJump(bool pbCanDoubleJump)
+    {
+        mbDoubleJumpEnabled = pbCanDoubleJump;
+        maxJumps = 2;
+    }
 
     public void Jump(InputAction.CallbackContext context)
     {
@@ -667,7 +809,7 @@ public class PlayerMovement : MonoBehaviour
                 isFacingRight = !isFacingRight;
                 Vector3 ls = transform.localScale;
                         ls.x *= -1f;
-        transform.localScale = ls;
+                        transform.localScale = ls;
             }
 
             Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f); //Wall Jump = 0.5f -- jump again = 0.6f
@@ -695,28 +837,16 @@ public class PlayerMovement : MonoBehaviour
         return (Physics2D.OverlapBox(wallCheckPos.position, wallCheckSize, 0, wallLayer));
     }
 
-    private ChamberExits ChamberTransitionCheck()
+    public void SetDoorOverlap(bool pbAtDoor, Transform pcDoor, bool pbAutoOpen = false)
     {
-        ChamberExits leExitTaken = ChamberExits.eeNone;
+        mbDoorOverlap = pbAtDoor;
+        mcOverlapDoor = pcDoor;
 
-        if(Physics2D.OverlapBox(ChamberTransitionTopCheckPos.position, ChamberTransitionCheckSize, 0, ChamberTransitionTopLayer))
+        //Door may force exit depending on trigger
+        if (pbAutoOpen)
         {
-            leExitTaken = ChamberExits.eeTop;
+            mcLevelManagerAccess.EnterNewArea(transform, mcCurrentChamber, mcOverlapDoor);
         }
-        else if(Physics2D.OverlapBox(ChamberTransitionBottomCheckPos.position, ChamberTransitionCheckSize, 0, ChamberTransitionBottomLayer))
-        {
-            leExitTaken = ChamberExits.eeBottom;
-        }
-        else if (Physics2D.OverlapBox(ChamberTransitionLeftCheckPos.position, ChamberTransitionCheckSize, 0, ChamberTransitionLeftLayer))
-        {
-            leExitTaken = ChamberExits.eeLeft;
-        }
-        else if (Physics2D.OverlapBox(ChamberTransitionRightCheckPos.position, ChamberTransitionCheckSize, 0, ChamberTransitionRightLayer))
-        {
-            leExitTaken = ChamberExits.eeRight;
-        }
-
-        return leExitTaken;
     }
 
     private void Flip()
@@ -748,32 +878,6 @@ public class PlayerMovement : MonoBehaviour
     public void ChangeChamber(Chamber pcNewChamber)
     {
         mcCurrentChamber = pcNewChamber;
-    }
-
-    private ChamberExits GetCheckExitTaken(ChamberExits leBaseExit)
-    {
-        ChamberExits lePlayerExit = leBaseExit;
-
-        if(leBaseExit == ChamberExits.eeLeft && transform.position.y > 4)
-        {
-            lePlayerExit = ChamberExits.eeMiddleLeft;
-        }
-        else if(leBaseExit == ChamberExits.eeRight && transform.position.y > 4)
-        {
-            lePlayerExit = ChamberExits.eeMiddleRight;
-        }
-        else if(leBaseExit == ChamberExits.eeTop && 
-            (meCurrentChamberSize == ChamberSize.eeLarge || meCurrentChamberSize == ChamberSize.eeLong))
-        {
-            lePlayerExit = (transform.position.x > 0) ? ChamberExits.eeTopRight : ChamberExits.eeTopLeft;
-        }
-        else if (leBaseExit == ChamberExits.eeBottom &&
-            (meCurrentChamberSize == ChamberSize.eeLarge || meCurrentChamberSize == ChamberSize.eeLong))
-        {
-            lePlayerExit = (transform.position.x > 0) ? ChamberExits.eeBottomRight : ChamberExits.eeBottomLeft;
-        }
-
-        return lePlayerExit;
     }
 
     private Vector2 CheckExitTransition(ChamberSize peNextChamberSize, ChamberExits peNextChamberEntrance)
@@ -860,39 +964,6 @@ public class PlayerMovement : MonoBehaviour
                 (lfBaseY + ((leSizes == ChamberSize.eeLarge || leSizes == ChamberSize.eeTall) ? lfHighYOffset : lfMiddleYOffset))));
 
         }
-    }
-
-    IEnumerator ChangeChamberCoroutine(ChamberSize peNextChamberSize, ChamberExits peNextChamberEntrance, bool pbTopExitTaken)
-    {
-        //Freeze movement when player hits transition point
-        rb.velocity = new Vector2(0, 0);
-        rb.constraints = RigidbodyConstraints2D.FreezePosition | RigidbodyConstraints2D.FreezeRotation;
-
-        //Wait for seconds
-        yield return new WaitForSeconds(0.5f);
-
-        //Update player position
-        transform.position = CheckExitTransition(peNextChamberSize, peNextChamberEntrance);
-
-        //Wait for seconds
-        yield return new WaitForSeconds(0.5f);
-
-        //resume control
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-
-        //If player is jumping up through a top exit, apply extra force on entrance
-        if (pbTopExitTaken)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpPower * 1.2f);
-        }
-        else
-        {
-            rb.velocity = new Vector2(rb.velocity.x, -0.1f);
-        }
-
-        meCurrentChamberSize = peNextChamberSize;
-
-        mbChamberTransitionComplete = true;
     }
 
     private void OnDrawGizmosSelected()

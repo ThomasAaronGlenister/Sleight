@@ -8,21 +8,40 @@ using System;
 using UnityEngine.Tilemaps;
 using UnityEditor;
 using System.Linq;
+using static Unity.VisualScripting.Member;
+using System.Drawing;
+using static UnityEditor.PlayerSettings;
+using static Cinemachine.DocumentationSortingAttribute;
+using UnityEditor.PackageManager;
 
 public class LevelManager : MonoBehaviour
 {
+    //Number of levels in the game
+    private int mnNumLevels = 3;
 
-    //List of chambers for level 1
-    private List<GameObject> macLevel1Chambers = new();
+    //Rate in degrees at which the level rotates 
+    public float mfLevelRotationDegrees = 10f;
 
-    //List of chambers for level 2
-    private List<GameObject> macLevel2Chambers = new();
+    //Lists of boss chambers organized by level
+    private List<GameObject>[] macLevelChambers;
 
-    //List of chambers for level 3
-    private List<GameObject> macLevel3Chambers = new();
+    //Lists of boss chambers organized by level
+    private List<GameObject>[] macLevelBossChamber;
+
+    //Lists of Special chambers organized by level
+    private List<GameObject>[] macLevelSpecialChamber;
+
+    //Level Grid used to check overlap and reference map
+    private LevelGrid[] mcLevelGrid;
+
+    //List of Levels created in this game
+    private GameObject[] macLevels;
+
+    //Tilesets used to show map
+    private Tilemap[] macLevelMapTileSets;
 
     //Chambers for Current level
-    private List<GameObject> CurrentLevelChambers = new();
+    private List<GameObject>[] macCurrentLevelChambers;
 
     GameObject mcCurrentChamber = null;
 
@@ -31,15 +50,15 @@ public class LevelManager : MonoBehaviour
     //Number of chambers to be added to level
     private int mnNumChambersInLevel = 5;
 
+    //Number of special chambers to be added to level
+    private int mnNumSpecialChambersInLevel = 1;
+
     //reference to camera used to change camera bounds
     public ConfinerUpdater mcConfinerUpdater;
 
     //2D translation from base point based on Chamber exit
     private Dictionary<int, Vector2> macChamberExitTranslations
         = new Dictionary<int, Vector2>();
-
-    //Level Grid used to check overlap and reference map
-    private LevelGrid mcLevelGrid;
 
     //MapController access
     public MapController MapControllerAccess;
@@ -50,14 +69,31 @@ public class LevelManager : MonoBehaviour
     //Set of Chamber offsets
     Vector2[,,,] macChamberPositionOffsets = new Vector2[(int)ChamberSize.eeLarge + 1, (int)ChamberSize.eeLarge + 1, (int)ChamberExits.eeNone, (int)ChamberExits.eeNone];
 
+    //TileSet of the World map
+    [SerializeField] private GameObject mcWorldMapTilesetPrefab;
+
+    //Virtual Camera object used to track player
+    [SerializeField] private GameObject mcPlayerCamera;
 
     // Start is called before the first frame update
     void Start()
     {
-        mcLevelGrid = new LevelGrid();
+        macLevelChambers = new List<GameObject>[mnNumLevels];
+        macLevelBossChamber = new List<GameObject>[mnNumLevels];
+        macLevelSpecialChamber = new List<GameObject>[mnNumLevels];
+        mcLevelGrid = new LevelGrid[mnNumLevels];
+        macCurrentLevelChambers = new List<GameObject>[mnNumLevels];
+        macLevels = new GameObject[mnNumLevels];
 
-        //Load chambers for level one
-        LoadChambers(0);
+        for (int lnNumLevels = 0; lnNumLevels < mnNumLevels; lnNumLevels++)
+        {
+            GameObject lcLevel = transform.Find("Level_" + (lnNumLevels + 1)).GameObject();
+
+            //Load chambers for each level
+            LoadChambers(lnNumLevels, lcLevel);
+            LoadBossChambers(lnNumLevels, lcLevel);
+            LoadSpecialChambers(lnNumLevels, lcLevel);
+        }
 
         //Creates translations from base exits
         InitializeChamberExitTranslations();
@@ -74,108 +110,149 @@ public class LevelManager : MonoBehaviour
         //Load all enemy and enemy attacks before building level
         mcEnemyManager.Initialize();
 
-        GenerateLevel(0);
+        Vector3 mcLevelExit = GenerateLevel(0, Vector3.zero);
+        mcLevelExit = GenerateLevel(1, mcLevelExit, -90);
+        GenerateLevel(2, mcLevelExit, -180);
     }
 
     /**
      * METHOD: Creates a Level Layout made of Level Chambers
      */
-    private void GenerateLevel(int pnLevel)
+    private Vector3 GenerateLevel(int pnLevel, Vector3 pcLevelShift, float pfRotation = 0)
     {
+        mcLevelGrid[pnLevel] = new LevelGrid();
 
-        CurrentLevelChambers.Clear();
-        List<GameObject> lacLevelPool = new();
-
-        //Debug.Log("Generate Level: " + pnLevel);
-
-        //TODO Add different level pools
-        if (pnLevel == 0)
+        if(pnLevel == 1)
         {
-            lacLevelPool = macLevel1Chambers;
+            mcLevelGrid[pnLevel].BlockGridAxis(Vector2.left);
         }
+
+        if (pnLevel == 2)
+        {
+            mcLevelGrid[pnLevel].BlockGridAxis(Vector2.right);
+        }
+
+        Transform lcLevel = transform.Find("Level_" + (pnLevel + 1));
+
+        //Add level to list of levels
+        macLevels[pnLevel] = lcLevel.gameObject;
+
+        //Set level pool based on provided level index
+        List<GameObject> lacLevelPool = new List<GameObject>(macLevelChambers[pnLevel]);
+
+        macCurrentLevelChambers[pnLevel] = new List<GameObject>();
 
         if (lacLevelPool.Count != 0)
         {
             //Add Start Chamber, Should Always be first in heirarchy 
-            CurrentLevelChambers.Add(lacLevelPool[0]);
+            macCurrentLevelChambers[pnLevel].Add(lacLevelPool[0]);
 
             //Set start chamber to current chamber
-            mcCurrentChamber = CurrentLevelChambers[0];
+            mcCurrentChamber = macCurrentLevelChambers[pnLevel][0];
 
             //Get Collection of random chambers to add to level
             for (int lnNumChambers = 1; lnNumChambers < mnNumChambersInLevel; lnNumChambers++)
             {
                 int lbRandomRoom = UnityEngine.Random.Range(1, (lacLevelPool.Count));
 
-                //Debug.Log("Add Chamber: " + lbRandomRoom);
-
                 //Add the random room and remove from the pool
-                CurrentLevelChambers.Add(lacLevelPool[lbRandomRoom]);
+                macCurrentLevelChambers[pnLevel].Add(lacLevelPool[lbRandomRoom]);
                 lacLevelPool.RemoveAt(lbRandomRoom);
             }
 
+            //Add Boss Room to end of Chamber list 
+            macCurrentLevelChambers[pnLevel].Add(macLevelBossChamber[pnLevel][UnityEngine.Random.Range(0, macLevelBossChamber[pnLevel].Count)]);
+
             //Initialize each chamber before it is placed in level
-            foreach (GameObject lcLevelChamber in CurrentLevelChambers)
+            foreach (GameObject lcLevelChamber in macCurrentLevelChambers[pnLevel])
             {
                 lcLevelChamber.GetComponent<Chamber>().InitializeChamber();
                 //Debug.Log("Initialize Chamber");
             }
 
-            ChamberExits leEntrance = ChamberExits.eeNone;
-
             //Begin with Start Chamber
-            Chamber lcChamber = CurrentLevelChambers[0].GetComponent<Chamber>();
+            Chamber lcChamber = macCurrentLevelChambers[pnLevel][0].GetComponent<Chamber>();
 
-            //Add Start chamber to grid
-            mcLevelGrid.AddChamberToGrid(0, 0, CurrentLevelChambers[0]);
+            //Add Start chamber to grid 
+            mcLevelGrid[pnLevel].AddChamberToGrid(0, 0, macCurrentLevelChambers[pnLevel][0]);
 
-            MapControllerAccess.AddChamberToMap(new List<Vector2>() { new Vector2(0,0) }, CurrentLevelChambers[0]);
+            MapControllerAccess.AddChamberToMap(new List<Vector2>() { new Vector2(0,0) }, macCurrentLevelChambers[pnLevel][0]);
 
             int lnNumFailedExits = 0;
             int lnNextChamberToAdd = 1;
 
             //for each chamber in level that needs to be added
-            for (int lnNumChambers = 0; lnNumChambers < mnNumChambersInLevel; lnNumChambers++)
+            for (int lnNumChambers = 0; lnNumChambers < mnNumChambersInLevel + 1; lnNumChambers++)
             {
-                lcChamber = CurrentLevelChambers[lnNumChambers].GetComponent<Chamber>();
+                lcChamber = macCurrentLevelChambers[pnLevel][lnNumChambers].GetComponent<Chamber>();
 
                 //TODO: refactor treasure populate
 
-                mcEnemyManager.PopulateWithEnemies(lcChamber);
+                //mcEnemyManager.PopulateWithEnemies(lcChamber);
 
-                //lcChamber.PopulateWithTreasure();
-                if (lnNumChambers != 0)
-                {
-                    //lcChamber.PopulateWithEnemies();
-                }
+                //lcChamber.PopulateWithDestructibles();
+
+                int lnNumPotentialRooms = lcChamber.GetNumPotentialRooms();
 
                 //for each potential exit
-                for (int lnNumExits = 0; lnNumExits < lcChamber.GetNumPotentialRooms(); lnNumExits++)
+                for (int lnNumExits = 0; lnNumExits < lnNumPotentialRooms; lnNumExits++)
                 {
                     //Room will be generated based on chance
-                    if (AllocateChamber(lnNumFailedExits, lcChamber.GetNumPotentialRooms()) && lnNextChamberToAdd < mnNumChambersInLevel)
+                    if (AllocateChamber(lnNumFailedExits, lnNumPotentialRooms) && lnNextChamberToAdd < mnNumChambersInLevel + 1)
                     {
+                        //Get next chamber to add
+                        Chamber lcAttachedChamber = macCurrentLevelChambers[pnLevel][lnNextChamberToAdd].GetComponent<Chamber>();
+
                         //Get Next available exit from this chamber
-                        ChamberExits leChamberExit = lcChamber.GetValidExit(leEntrance);
+                        //ChamberExits leChamberExit = lcChamber.GetValidExit(ChamberExits.eeNone, lcAttachedChamber.GetAvailableExits());
+
+                        ChamberExits leChamberExit = ChamberExits.eeNone;
+                        ChamberExits leNewChamberEntrance = ChamberExits.eeNone;
+
+                        List <ChamberExits> lacAvailableExitsBetweenChambers = lcChamber.GetAllValidExits(ChamberExits.eeNone, lcAttachedChamber.GetAvailableExits());
+
+                        foreach(ChamberExits lePotentialExit in lacAvailableExitsBetweenChambers)
+                        {
+                            //Determine Grid point from chamber exit chosen
+                            Vector2 lcExitPoint = lcChamber.GetExitPoint(lePotentialExit);
+
+                            //Get random entrance to new chamber that coincides with random exit of current chamber
+                            List <ChamberExits> leNewChamberEntrances = lcAttachedChamber.GetAllValidExits(lePotentialExit);
+
+                            foreach(ChamberExits lePotentialEntrance in leNewChamberEntrances)
+                            {
+                                //Debug.Log("Check Coordinates   Exit: " + lePotentialExit + " Entrance: " + lePotentialEntrance);
+                                //Check if Level Grid allows for this new chamber at this point
+                                if (AssignNextChamberCoordinates(pnLevel, (int)lcExitPoint.x, (int)lcExitPoint.y, lePotentialEntrance, macCurrentLevelChambers[pnLevel][lnNextChamberToAdd]))
+                                {
+                                    leChamberExit = lePotentialExit;
+                                    leNewChamberEntrance = lePotentialEntrance;
+                                    break;
+                                }
+                            }
+
+                            if(leChamberExit != ChamberExits.eeNone)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (leChamberExit == ChamberExits.eeNone)
+                        {
+                            Debug.Log("Failed to find valid exit for Chamber: " + lcChamber.name + "To Chamber " + lcAttachedChamber.gameObject + " Count " + lcAttachedChamber.GetAvailableExits().Count);
+                        }
 
                         //Determine Grid point from chamber exit chosen
-                        Vector2 lcExitPoint = lcChamber.GetExitPoint(leChamberExit);
-
-                        //Get added chamber 
-                        Chamber lcAttachedChamber = CurrentLevelChambers[lnNextChamberToAdd].GetComponent<Chamber>();
-
-                        //Get random entrance to new chamber that coincides with random exit of current chamber
-                        ChamberExits leNewChamberEntrance = lcAttachedChamber.GetValidExit(leChamberExit);
+                        //Vector2 lcExitPoint = lcChamber.GetExitPoint(leChamberExit);
 
                         //Check if randomized chamber can be added to grid
-                        if (leNewChamberEntrance != ChamberExits.eeNone &&
-                            AssignNextChamberCoordinates((int)lcExitPoint.x, (int)lcExitPoint.y, leNewChamberEntrance, CurrentLevelChambers[lnNextChamberToAdd]))
+                        if (leNewChamberEntrance != ChamberExits.eeNone)
                         {
                             //Create Exit to the Next chamber in the set
-                            lcChamber.CreateExit(leChamberExit, CurrentLevelChambers[lnNextChamberToAdd]);
+                            lcChamber.CreateExit(leChamberExit, macCurrentLevelChambers[pnLevel][lnNextChamberToAdd]);
 
                             //Create exit on added chamber
-                            lcAttachedChamber.CreateExit(leNewChamberEntrance, CurrentLevelChambers[lnNumChambers]);
+                            lcAttachedChamber.CreateExit(leNewChamberEntrance, macCurrentLevelChambers[pnLevel][lnNumChambers]);
 
                             //Set chamber Entrance/Exit connections
                             lcChamber.ConnectExits(leChamberExit, leNewChamberEntrance);
@@ -183,21 +260,20 @@ public class LevelManager : MonoBehaviour
 
                             //Shift new chamber 2D position to connect it to base chamber
                             PositionNewChamber(lcChamber.transform.position, lcChamber.GetChamberSize(), leChamberExit, lcAttachedChamber.GetChamberSize(), 
-                                leNewChamberEntrance, CurrentLevelChambers[lnNextChamberToAdd]);
+                                leNewChamberEntrance, macCurrentLevelChambers[pnLevel][lnNextChamberToAdd]);
 
-                            Debug.Log("New Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].name + " Entrance: " + leNewChamberEntrance + 
+                            Debug.Log("New Chamber: " + macCurrentLevelChambers[pnLevel][lnNextChamberToAdd].name + " Entrance: " + leNewChamberEntrance + 
                                 "  Base Chamber: " + lcChamber.gameObject.name  + " Exit: " + leChamberExit);
 
-                            mcConfinerUpdater.AddPolygonCameraCollider(CurrentLevelChambers[lnNextChamberToAdd].GetComponent<Chamber>().GetCameraCollider(),
-                                CurrentLevelChambers[lnNextChamberToAdd].transform.position);
-
-                            //Debug.Log("Chamber: " + CurrentLevelChambers[lnNumChambers].ToString() + "Create Exit " + leChamberExit + 
-                            //   " -----> Chamber: " + CurrentLevelChambers[lnNextChamberToAdd].ToString() + "Create Entrance " + leNewChamberEntrance);
+                            //Update Camera Confiner to add new chamber
+                            mcConfinerUpdater.AddPolygonCameraCollider(macCurrentLevelChambers[pnLevel][lnNextChamberToAdd].GetComponent<Chamber>().GetCameraCollider(),
+                                macCurrentLevelChambers[pnLevel][lnNextChamberToAdd].transform.position);
 
                             lnNextChamberToAdd++;
                         }
                         else
                         {
+                            Debug.Log("Failed to create connections: " + macCurrentLevelChambers[pnLevel][lnNumChambers].name + " to Chamber " + macCurrentLevelChambers[pnLevel][lnNextChamberToAdd].name + " Exit: " + leChamberExit);
                             lnNumFailedExits++;
                         }
                     }
@@ -207,7 +283,7 @@ public class LevelManager : MonoBehaviour
                     }
 
                     //If added chambers goes over max chambers stop generation
-                    if(lnNextChamberToAdd >= mnNumChambersInLevel)
+                    if(lnNextChamberToAdd >= mnNumChambersInLevel + 1)
                     {
                         break;
                     }
@@ -218,11 +294,164 @@ public class LevelManager : MonoBehaviour
             }
         }
 
+        //Add special chambers to level
+        for (int lnNumSpecialChambers = 0; lnNumSpecialChambers < mnNumSpecialChambersInLevel; lnNumSpecialChambers++)
+        {
+            //Get Random special chamber associated with this level
+            GameObject lcSpecialChamber = macLevelSpecialChamber[pnLevel][UnityEngine.Random.Range(0, macLevelSpecialChamber[pnLevel].Count)];
+
+            //Create map tileset for main chambers of the level
+            GameObject lcSpecialChambersTileSet = Instantiate(mcWorldMapTilesetPrefab, Vector3.zero, lcSpecialChamber.transform.rotation, lcSpecialChamber.transform);
+            //lcSpecialChamber.GetComponent<Chamber>().InitializeChamber();
+
+            //Pick random chamber in level and add special chamber to it
+            int lnChamberIndex = UnityEngine.Random.Range(1, (mnNumChambersInLevel));
+
+            //Link level chamber and side chamber together
+            macCurrentLevelChambers[pnLevel][lnChamberIndex].GetComponent<Chamber>().SetSideChamber(lcSpecialChamber.GetComponent<Chamber>());
+            lcSpecialChamber.GetComponent<Chamber>().SetSideChamber(macCurrentLevelChambers[pnLevel][lnChamberIndex].GetComponent<Chamber>());
+
+            //Add Door to selected level chamber
+            macCurrentLevelChambers[pnLevel][lnChamberIndex].GetComponent<Chamber>().CreateDoorway();
+
+            Vector3 lcDoorwayPos = macCurrentLevelChambers[pnLevel][lnChamberIndex].GetComponent<Chamber>().GetDoorPosition();
+
+            Debug.Log("DoorWay Position: " + lcDoorwayPos);
+
+            //Add Ground/Wall tiles to map tileset
+            UpdateMapTileGrid(new List<GameObject>() { lcSpecialChamber }, lcSpecialChambersTileSet.GetComponent<Tilemap>());
+
+            //Reposition special chamber to position of Door in level chamber
+            lcSpecialChamber.transform.localPosition = new Vector3(-4, (lcDoorwayPos.y + 3), (lcDoorwayPos.x));
+
+            Debug.Log("Created Doorway on chamber: " + macCurrentLevelChambers[pnLevel][lnChamberIndex].name);
+        }
+
+        //Get Boss chamber Doorway to Next level
+        macCurrentLevelChambers[pnLevel][mnNumChambersInLevel].GetComponent<Chamber>().CreateDoorway();
+
+        Debug.Log("LEVEL " + (pnLevel + 1) + " SHIFT: " + pcLevelShift);
+
+        if(pnLevel != 0)
+        {
+            //Open doors on start room
+            macCurrentLevelChambers[pnLevel][0].GetComponent<Chamber>().CreateExit(ChamberExits.eeLeft);
+            macCurrentLevelChambers[pnLevel][0].GetComponent<Chamber>().CreateExit(ChamberExits.eeRight);
+        }
+
+        //Create map tileset for main chambers of the level
+        GameObject lcMainChambersTileSet = Instantiate(mcWorldMapTilesetPrefab, Vector3.zero, Quaternion.identity);
+
+        //Add Ground/Wall tiles to map tileset
+        UpdateMapTileGrid(macCurrentLevelChambers[pnLevel], lcMainChambersTileSet.GetComponent<Tilemap>());
+
+        lcMainChambersTileSet.transform.SetParent(lcLevel);
+
+        //Reposition Level based off of previous levels exit
+        if (pcLevelShift != Vector3.zero)
+        {
+            //Set level to inactive 
+            lcLevel.gameObject.SetActive(false);
+
+            //Rotate level about Y-axis
+            lcLevel.Rotate(0, pfRotation, 0);
+            lcLevel.localPosition = AdjustedLevelPlacement(pcLevelShift, pfRotation);
+
+            //Connect level exits to level entrances
+            //Connect Last Chamber (Boss Room) of previous level to start room (0) of current level
+            macCurrentLevelChambers[pnLevel - 1][(macCurrentLevelChambers[pnLevel - 1].Count - 1)].GetComponent<Chamber>().SetSideChamber
+                (macCurrentLevelChambers[pnLevel][0].GetComponent<Chamber>());
+
+            macCurrentLevelChambers[pnLevel][0].GetComponent<Chamber>().SetSideChamber
+                (macCurrentLevelChambers[pnLevel - 1][(macCurrentLevelChambers[pnLevel - 1].Count - 1)].GetComponent<Chamber>());
+        }
+
+        Vector3 lcLevelExitPos = macCurrentLevelChambers[pnLevel][mnNumChambersInLevel].GetComponent<Chamber>().GetDoorPosition();
+
+        Debug.Log("LEVEL " + (pnLevel + 1) + " Exit position: " + lcLevelExitPos);
+
         //Pathfinding rescan on new level
         AstarPath.active.Scan();
+
+        return lcLevelExitPos;
     }
 
-    private bool AssignNextChamberCoordinates(int pnBaseChamberX, int pnBaseChamberY, 
+    private Vector3 AdjustedLevelPlacement(Vector3 pcPreviousLevelDoorPos, float pfLevelRotation)
+    {
+        Vector3 lcReturnPosition = new Vector3(pcPreviousLevelDoorPos.x, (pcPreviousLevelDoorPos.y + 3), pcPreviousLevelDoorPos.z);
+
+        if (pfLevelRotation == 90)
+        {
+            lcReturnPosition = new Vector3(lcReturnPosition.x, lcReturnPosition.y, (lcReturnPosition.z - 10));
+        }
+        if (pfLevelRotation == -90)
+        {
+            lcReturnPosition = new Vector3(lcReturnPosition.x, lcReturnPosition.y, (lcReturnPosition.z + 10));
+        }
+        else if(pfLevelRotation == -180)
+        {
+            lcReturnPosition = new Vector3((lcReturnPosition.x + 4), lcReturnPosition.y, lcReturnPosition.z);
+        }
+        else if (pfLevelRotation == 180)
+        {
+            lcReturnPosition = new Vector3((lcReturnPosition.x - 4), lcReturnPosition.y, lcReturnPosition.z);
+        }
+
+        return lcReturnPosition;
+    }
+
+    private void UpdateMapTileGrid(List<GameObject> pacLevelChambers, Tilemap pcLevelTilemap)
+    {
+        pcLevelTilemap.size = new Vector3Int(40, 40, 40);
+        pcLevelTilemap.ResizeBounds();
+
+        //List of tilemaps 
+        List<Tilemap> lacTilemaps = new List<Tilemap>();
+
+        foreach (GameObject lcChamber in pacLevelChambers)
+        {
+            //Get tilemap for ground and wall children
+            lacTilemaps.Add(lcChamber.transform.Find("Ground").GetComponent<Tilemap>());
+            lacTilemaps.Add(lcChamber.transform.Find("Walls").GetComponent<Tilemap>());
+
+            foreach (Transform lcExitChildren in lcChamber.transform.Find("Exits"))
+            {
+                if(lcExitChildren.gameObject.activeSelf)
+                {
+                    lacTilemaps.Add(lcExitChildren.Find("ExitGround").GetComponent<Tilemap>());
+                    lacTilemaps.Add(lcExitChildren.Find("ExitWalls").GetComponent<Tilemap>());
+                }
+            }
+
+            foreach (Tilemap lcTilemap in lacTilemaps)
+            {
+                for (int x = lcTilemap.cellBounds.xMin; x < lcTilemap.cellBounds.xMax; x++)
+                {
+                    for (int y = lcTilemap.cellBounds.yMin; y < lcTilemap.cellBounds.yMax; y++)
+                    {
+                        Vector3Int localLocation = new Vector3Int(
+                            x: x,
+                            y: y,
+                            z: 0);
+
+                        Vector3Int offsetPos = new Vector3Int(localLocation.x + (int)lcChamber.transform.position.x,
+                            localLocation.y + (int)lcChamber.transform.position.y, 0);
+
+                        if (lcTilemap.GetTile(localLocation) != null)
+                        {
+                            //Debug.Log("Chamber " + lcTilemap.transform.parent.name + " " + lcTilemap.transform.name + " PlaceTile: X: " + offsetPos.x + " Y: " + offsetPos.y + " Tile: " + lcTilemap.GetTile(localLocation).name);
+                            pcLevelTilemap.SetTile(offsetPos, lcTilemap.GetTile(localLocation));
+                        }
+                    }
+                }
+            }
+
+            lacTilemaps.Clear();
+        }
+
+    }
+
+    private bool AssignNextChamberCoordinates(int pnLevel, int pnBaseChamberX, int pnBaseChamberY, 
          ChamberExits peNewChamberEntrance, GameObject pcNewChamber)
     {
         bool lbValidPlacement = true;
@@ -258,7 +487,7 @@ public class LevelManager : MonoBehaviour
         //Check whether new Chamber overlaps with existing chamber
         foreach (Vector2 lcNewChamberPoint in lacGridSectors)
         {
-            if(mcLevelGrid.IsGridSectionFilled((int)lcNewChamberPoint.x, (int)lcNewChamberPoint.y))
+            if (mcLevelGrid[pnLevel].IsGridSectionFilled((int)lcNewChamberPoint.x, (int)lcNewChamberPoint.y))
             {
                 lbValidPlacement = false;
                 break;
@@ -275,7 +504,7 @@ public class LevelManager : MonoBehaviour
 
             foreach (Vector2 lcNewChamberPoint in lacGridSectors)
             {
-                mcLevelGrid.AddChamberToGrid((int)lcNewChamberPoint.x, (int)lcNewChamberPoint.y, pcNewChamber);
+                mcLevelGrid[pnLevel].AddChamberToGrid((int)lcNewChamberPoint.x, (int)lcNewChamberPoint.y, pcNewChamber);
 
                 //Debug.Log("Add Grid Point    x: " + lcNewChamberPoint.x + "   y: " + lcNewChamberPoint.y);
             }
@@ -323,11 +552,11 @@ public class LevelManager : MonoBehaviour
         {
             if (lnBaseOffsetX < 0)
             {
-                lnBaseOffsetX -= 7;
+                lnBaseOffsetX -= 8;
             }
             else
             {
-                lnBaseOffsetX += 7;
+                lnBaseOffsetX += 8;
             }
         }
 
@@ -400,7 +629,7 @@ public class LevelManager : MonoBehaviour
 
         pcNewChamber.GetComponent<Chamber>().RepositionChamber(lcNewChamberPositon);
 
-        pcNewChamber.transform.gameObject.SetActive(true);
+        //pcNewChamber.transform.gameObject.SetActive(false);
     }
 
     /*
@@ -418,114 +647,176 @@ public class LevelManager : MonoBehaviour
         {
             lbCreateChamber = true;
         }
+        else
+        {
+            //Debug.Log("AllocateChamber: Failed " + pnNumFailures + " " + pnPotentialRooms);
+        }
 
-        return lbCreateChamber;
+            return lbCreateChamber;
     }
 
     /**
      * METHOD: Loads all chambers for a specified level
      */
-    private void LoadChambers (int pnLevel)
+    private void LoadChambers (int pnLevel, GameObject pcLevel)
     {
         //Get the desired level game object 
-        GameObject lcLevelGameObject = transform.GetChild(pnLevel).gameObject;
+        GameObject lcLevelGameObject = pcLevel.transform.Find("Level_Chambers").GameObject();
+
+        macLevelChambers[pnLevel] = new List<GameObject>();
 
         //Add all Chambers to LevelChambers
         foreach (Transform lcChamber in lcLevelGameObject.transform)
         {
-            switch(pnLevel)
+            lcChamber.position = Vector2.zero;
+            macLevelChambers[pnLevel].Add(lcChamber.gameObject);
+        }
+    }
+
+    private void LoadBossChambers(int pnLevel, GameObject pcLevel)
+    {
+        //Get Child List of boss rooms for this level
+        GameObject lcLevelBossRoomList = pcLevel.transform.Find("Level_BossRooms").GameObject();
+
+        macLevelBossChamber[pnLevel] = new List<GameObject>();
+
+        //Add all Chambers to LevelChambers
+        foreach (Transform lcChamber in lcLevelBossRoomList.transform)
+        {
+            lcChamber.position = Vector2.zero;
+            macLevelBossChamber[pnLevel].Add(lcChamber.gameObject);
+        }
+    }
+
+    private void LoadSpecialChambers(int pnLevel, GameObject pcLevel)
+    {
+        //Get Child List of boss rooms for this level
+        GameObject lcLevelSpecialRoomList = pcLevel.transform.Find("Level_SpecialRooms").GameObject();
+
+        macLevelSpecialChamber[pnLevel] = new List<GameObject>();
+
+        //Add all Chambers to LevelChambers
+        foreach (Transform lcChamber in lcLevelSpecialRoomList.transform)
+        {
+            macLevelSpecialChamber[pnLevel].Add(lcChamber.gameObject);
+        }
+    }
+
+    //Changes the orientation of the world map 
+    public void EnterNewArea(Transform pcPlayer, Chamber pcChamber, Transform pcDoor)
+    {
+        StartCoroutine(EnterNewAreaCoroutine(pcPlayer, pcChamber, pcDoor));
+    }
+
+    private IEnumerator EnterNewAreaCoroutine(Transform pcPlayer, Chamber pcChamber, Transform pcDoor)
+    {
+        //Freeze Time/ physics calculations
+        Time.timeScale = 0f;
+
+        //Local copy of levels list
+        GameObject[] lacLevels = macLevels;
+
+        Chamber lcSideChamber = pcChamber.GetSideChamber();
+
+        PlayerMovement lcPlayerControl = pcPlayer.GetComponent<PlayerMovement>();   
+
+        pcChamber.DisableAdjacentChambers(pcChamber.transform.gameObject);
+
+        bool lbMainDoorway = pcChamber.HasDoorway();
+
+        Vector2 lcInitialPosition = pcPlayer.position;
+        Vector2 lcAdjustedPosition = new Vector2(0.1f, lcInitialPosition.y);
+
+        Vector3 lcCameraInitialPosition = mcPlayerCamera.transform.position;
+        Vector3 lcCameraAdjustedPosition = new Vector3(0.1f, lcCameraInitialPosition.y, lcCameraInitialPosition.z);
+
+        float elapsedTime = 0;
+        float waitTime = 1f;
+        float DoorOpenTime = 0.35f;
+
+        //Rotation may only be 90 or -90 degrees
+        float mfRotation = Mathf.Round((lcSideChamber.transform.parent.transform.localEulerAngles.y != 0) ? 
+            lcSideChamber.transform.parent.transform.localEulerAngles.y : lcSideChamber.transform.parent.transform.parent.localEulerAngles.y);
+        mfRotation = (mfRotation - ((mfRotation > 180) ? 360 : 0)) * -1;
+
+        //Play player animation to enter door
+        if (lbMainDoorway) { lcPlayerControl.PlayEnterDoor(); }
+
+        Vector3 lcPivotPosition = pcDoor.position;
+
+        //Open the Door
+        while (elapsedTime < DoorOpenTime)
+        {
+            pcDoor.localRotation = Quaternion.Slerp(pcDoor.transform.localRotation, Quaternion.Euler(0f, 90, 0f), (elapsedTime / DoorOpenTime));
+            elapsedTime += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        pcDoor.GetComponent<SpriteRenderer>().sortingLayerName = "Player";
+
+        float lfPlayPositionXOffset = ((lbMainDoorway && mfRotation == 90) || (!lbMainDoorway && mfRotation == 90)) ? 0.5f : -0.5f;
+
+        Debug.Log("mfRotation: " + mfRotation + " PlayPosXOffset: " + lfPlayPositionXOffset);
+
+        pcChamber.SetChamberTransparency(0);
+        lcSideChamber.SetChamberTransparency(1);
+
+        elapsedTime = 0;
+
+        Transform lcPlayerFollowPoint = mcPlayerCamera.GetComponent<CinemachineVirtualCamera>().Follow;
+
+        //Play player animation to rotate
+        if (lbMainDoorway) { lcPlayerControl.PlayTurn((mfRotation < 0)); }
+
+        float lfWorldRotationSum = 0;
+
+        while (elapsedTime < waitTime)
+        {
+            //Change opacity of chambers as shift occurs
+            //pcChamber.SetChamberTransparency(Mathf.Lerp(0.9f, -0.2f, (elapsedTime / waitTime)));
+            //lcSideChamber.SetChamberTransparency(Mathf.Lerp(0f, 1f, (elapsedTime / waitTime)));
+
+            //Lerp player towards entrance of rotated space
+            pcPlayer.position = Vector2.Lerp(lcInitialPosition, new Vector2(pcDoor.position.x + lfPlayPositionXOffset, lcInitialPosition.y), (elapsedTime / waitTime));
+            //mcPlayerCamera.transform.position = Vector3.Lerp(lcCameraInitialPosition, new Vector2(pcDoor.position.x - 0.5f, lcCameraInitialPosition.y), (elapsedTime / waitTime));
+
+            float lfWorldRotation = (Time.unscaledDeltaTime / waitTime) * 90;
+
+            if(lfWorldRotationSum + lfWorldRotation > 90)
             {
-                case 0:
-                    lcChamber.position = Vector2.zero;
-                    macLevel1Chambers.Add(lcChamber.gameObject);
-                    break;
-                default:
-                    break;
+                lfWorldRotation = 90 - lfWorldRotationSum;
             }
-        }
 
-        //Debug.Log("Loaded " + macLevel1Chambers.Count + " Chamber(s) for level " + (pnLevel + 1));
-    }
-
-    /*
-     * METHOD: Loads the next tilemap
-     */
-    public (ChamberSize, ChamberExits) ChangeChamber(ChamberExits peChamberExit)
-    {
-        ChamberSize leNextChamberSize = ChamberSize.eeDefault;
-        ChamberExits leChamberEntrance = ChamberExits.eeNone;
-
-        if (mcCurrentChamber != null)
-        {
-            Chamber lcCurrentChamber = mcCurrentChamber.GetComponent<Chamber>();
-
-            GameObject lcNextChamber = lcCurrentChamber.GetConnectedChamber(peChamberExit);
-
-            leNextChamberSize = lcNextChamber.GetComponent<Chamber>().GetChamberSize();
-
-            leChamberEntrance = lcCurrentChamber.GetConnectedChamberEntrance(peChamberExit);
-
-            Debug.Log("Exit " + peChamberExit + " Entering " + leChamberEntrance);
-
-            StartCoroutine(ChangeChamberCoroutine(leNextChamberSize, lcNextChamber));
-        }
-        else
-        {
-            Debug.Log("Current Chamber not set");
-        }
-
-        return (leNextChamberSize, leChamberEntrance);
-    }
-
-    IEnumerator ChangeChamberCoroutine(ChamberSize peChamberSize, GameObject pcNextChamber)
-    {
-        mcTransition.SetTrigger("Start");
-
-        yield return new WaitForSeconds(0.5f);
-
-        Chamber lcCurrentChamber = mcCurrentChamber.GetComponent<Chamber>();
-        Chamber lcNextChamber = pcNextChamber.GetComponent<Chamber>();
-
-        mcCurrentChamber.SetActive(false);
-
-        lcCurrentChamber.Exit();
-
-        //Reset Camera Confiner to size of next room
-        mcConfinerUpdater.UpdateConfiner(peChamberSize);
-
-        pcNextChamber.gameObject.SetActive(true);
-
-        //Pathfinding rescan on new chamber for enemy AI
-        AstarPath.active.Scan();
-
-        lcNextChamber.Enter();
-
-        yield return new WaitForSeconds(0.2f);
-
-        mcTransition.SetTrigger("End");
-
-        mcCurrentChamber = pcNextChamber;
-    }
-
-    //Creates list of chamber position offsets 
-    private void InitializeChamberPositionOffsets()
-    {
-        int lnBaseOffsetX = 0;
-        int lnBaseOffsetY = 0;
-
-        for (int lnBaseChamberSize = 0; lnBaseChamberSize < (int)ChamberSize.eeLarge + 1; lnBaseChamberSize++)
-        {
-            for (int lnNewChamberSize = 0; lnNewChamberSize < (int)ChamberSize.eeLarge + 1; lnNewChamberSize++)
+            foreach (GameObject lcLevel in lacLevels)
             {
-                for (int lnBaseChamberExit = 0; lnBaseChamberExit < (int)ChamberExits.eeNone; lnBaseChamberExit++)
-                {
-                    for (int lnNewChamberEntrance = 0; lnNewChamberEntrance < (int)ChamberExits.eeNone; lnNewChamberEntrance++)
-                    {
-                        macChamberPositionOffsets[lnBaseChamberSize, lnNewChamberSize, lnBaseChamberExit, lnNewChamberEntrance] = new Vector2(0, 0);
-                    }
-                }
+                lcLevel.transform.RotateAround(lcPivotPosition, Vector3.up * ((mfRotation == -90) ? -1 : 1), lfWorldRotation);
             }
+
+            lfWorldRotationSum += lfWorldRotation;
+
+            elapsedTime += Time.unscaledDeltaTime;
+            yield return null;
         }
+
+        pcPlayer.position = new Vector2(pcDoor.position.x + lfPlayPositionXOffset, lcInitialPosition.y);
+
+        pcDoor.GetComponent<SpriteRenderer>().sortingLayerName = "BackGround3";
+        elapsedTime = 0;
+
+        //Close the door
+        while (elapsedTime < DoorOpenTime)
+        {
+            pcDoor.localRotation = Quaternion.Slerp(pcDoor.transform.localRotation, Quaternion.Euler(0f, 0f, 0f), (elapsedTime / DoorOpenTime));
+            elapsedTime += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        //unFreeze Time/ physics calculations
+        Time.timeScale = 1;
+
+        //Update player to set to side chamber
+        pcPlayer.GetComponent<PlayerMovement>().ChangeChamber(lcSideChamber);
+        if (lbMainDoorway) { lcPlayerControl.SetPlayerAnimatorScaledTime(); }
     }
 
     private void InitializeChamberExitTranslations()

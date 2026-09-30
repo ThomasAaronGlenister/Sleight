@@ -16,6 +16,9 @@ public class MapController : MonoBehaviour
 
     private List<GameObject> macChamberIcons = new List<GameObject>();
 
+    [SerializeField] private float mfMapOpenWaitTime = 0.3f;
+    [SerializeField] private float mfMapCloseWaitTime = 0.05f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -54,17 +57,21 @@ public class MapController : MonoBehaviour
     {
         if (mbMapShown)
         {
-            mcMap.SetActive(false);
-            mcMapBackground.SetActive(false);
-
+            StartCoroutine(MapSwitchCoroutine(false));
         }
         else
         {
-            mcMap.SetActive(true);
-            mcMapBackground.SetActive(true);
+            StartCoroutine(MapSwitchCoroutine(true));
         }
 
         mbMapShown = !mbMapShown;
+    }
+
+    private IEnumerator MapSwitchCoroutine(bool pbSetActive)
+    {
+        float lfWaitTime = (pbSetActive) ? mfMapOpenWaitTime : mfMapCloseWaitTime;
+        yield return new WaitForSeconds(lfWaitTime);
+        mcMapBackground.SetActive(pbSetActive);
     }
 
 

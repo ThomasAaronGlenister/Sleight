@@ -382,6 +382,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: BatEnemy-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 1664
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f7e4584b1a8be1449af2ec3693207d9
+      internalID: 1535709410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -398,6 +419,7 @@ TextureImporter:
       BatEnemy-Sheet_10: 1855506489
       BatEnemy-Sheet_11: -1185348663
       BatEnemy-Sheet_12: 1200819279
+      BatEnemy-Sheet_13: 1535709410
       BatEnemy-Sheet_2: -1856834584
       BatEnemy-Sheet_3: -117880373
       BatEnemy-Sheet_4: 1560893508

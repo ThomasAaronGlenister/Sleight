@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using JetBrains.Annotations;
+using System.Linq;
 
 public class DeckController : MonoBehaviour
 {
@@ -50,7 +51,7 @@ public class DeckController : MonoBehaviour
     private int mnSwapCardOffset;
 
     //Base size of display cards
-    public float lfDisplayCardSize = 250f;
+    public float lfDisplayCardSize = 300f;
 
     //Base size of display cards
     public float lfHandCardSize = 220f;
@@ -173,7 +174,7 @@ public class DeckController : MonoBehaviour
          */
         for (int i = 0; i < 13; i++)
         {
-            macPlayerDeck.Add(macFullDeck[UnityEngine.Random.Range(0, (macFullDeck.Count) - 48)]);
+            macPlayerDeck.Add(macFullDeck[UnityEngine.Random.Range(0, (macFullDeck.Count))]);
         }
 
         Time.fixedDeltaTime = 1.0f / 60f;
@@ -279,9 +280,16 @@ public class DeckController : MonoBehaviour
             }
 
             //Reset Active deck with each card in player deck
+            //Randomize player deck if shuffled
+            var lacPlayerDeckCopy = new List<Card>();
+            lacPlayerDeckCopy.AddRange(macPlayerDeck);
+
+            //Simple randomized shuffle
             for (int i = 0; i < macPlayerDeck.Count; i++)
             {
-                AddCard(macPlayerDeck[i]);
+                int lnShuffleIdx = UnityEngine.Random.Range(0, lacPlayerDeckCopy.Count);
+                AddCard(lacPlayerDeckCopy[lnShuffleIdx]);
+                lacPlayerDeckCopy.RemoveAt(lnShuffleIdx);
             }
 
             AddCard(mcReloadCard);
@@ -794,7 +802,8 @@ public class DeckController : MonoBehaviour
             if(pbCharge)
             {
                 lcReloadAnimation.Play("ReloadAnimation");
-                lcReloadAnimation.speed = 1;
+                //TODO: Update reload speed based on cards in deck
+                lcReloadAnimation.speed = 2;
                 mbReloadCharging = true;
             }
             else

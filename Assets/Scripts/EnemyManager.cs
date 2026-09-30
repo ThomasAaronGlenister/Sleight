@@ -30,15 +30,14 @@ public class EnemyManager : MonoBehaviour
         List<Vector2> lacSpawnPoints = pcChamberToPopulate.GetEnemySpawnPoints();
 
         //If any designated spawn points exist in this chamber
-        if (lacSpawnPoints.Count != 0)
+        while (lacSpawnPoints.Count != 0)
         {
             //Get Random Spawn point from list 
             Vector2 lcSpawnPoint = lacSpawnPoints[UnityEngine.Random.Range(0, lacSpawnPoints.Count)];
 
-            //int lnEnemyId = UnityEngine.Random.Range(6, 7);
-            int lnEnemyId = 0;
+            int lnEnemyId = UnityEngine.Random.Range(0, 2);
 
-            GameObject lcEnemy = Instantiate(mcEnemyPrefab, lcSpawnPoint, Quaternion.identity);
+           GameObject lcEnemy = Instantiate(mcEnemyPrefab, lcSpawnPoint, Quaternion.identity);
             lcEnemy.GetComponent<EnemyAI>().SetEnemyAttributes(mcEnemyAttributesLoader.GetBaseEnemyAttributes(lnEnemyId));
             lcEnemy.transform.SetParent(pcChamberToPopulate.transform);
 

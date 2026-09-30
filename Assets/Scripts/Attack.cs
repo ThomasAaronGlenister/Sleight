@@ -54,6 +54,9 @@ public class Attack : MonoBehaviour
     //Attack visual Effects
     private GameObject mcSmokeFX;
 
+    //Attack initiate visual Effects
+    private ParticleSystem mcFireFX;
+
     //Attack Hitbox
     private GameObject mcChildHitbox;
 
@@ -101,10 +104,10 @@ public class Attack : MonoBehaviour
     float[] mafEffectAppliedTime = new float[(int)SuitEffect.eeSuitEffectEnd]
         {0, 0, 0, 0, 0, 0, 0};
 
-    //Pause Manager 
-    private PauseManager mcPauseManager;
+    //Camera Controller
+    [SerializeField] private CameraController mcCameraController;
 
-    private CameraController mcCameraController;
+    private int mnAttackDamage = 0;
 
     void Start()
     {
@@ -119,6 +122,11 @@ public class Attack : MonoBehaviour
             if (lcChild.name == "SmokeFX")
             {
                 mcSmokeFX = lcChild.gameObject;
+            }
+            else if (lcChild.name == "FireBurst")
+            {
+                mcFireFX = Instantiate(lcChild.gameObject.GetComponent<ParticleSystem>());
+                mcFireFX.transform.SetParent(this.transform);
             }
             else if (lcChild.name == "HitBox")
             {
@@ -148,7 +156,7 @@ public class Attack : MonoBehaviour
         mcSpriteRenderer = GetComponent<SpriteRenderer>();
         mcSpriteRenderer.enabled = false;
 
-        mcPauseManager = GameObject.Find("PauseManager").GetComponent<PauseManager>();
+        //Get Gameplay components that support attack
         mcCameraController = GameObject.Find("Virtual Camera").GetComponent<CameraController>();
 
     }
@@ -170,10 +178,18 @@ public class Attack : MonoBehaviour
     //Catches collider overlaps for the attack
     void OnTriggerEnter2D(Collider2D lcCollision)
     {
-        Vector3 lcHitboxPositon = mcChildHitbox.transform.position;
+        Vector3 lcAttackScale = transform.localScale;
 
-        Vector3 lcCollisionPosition = mcChildHitbox.transform.position;
+        if(mcPlayerAttacker && mcPlayerAttacker.transform.localScale.x < 0)
+        {
+            lcAttackScale.x *= -1f;
+        }
 
+        //Scale and augment collision world position based on attack changes
+        Vector3 lcCollisionPosition = 
+            mcChildHitbox.transform.position + Vector3.Scale((Vector3)mcChildHitbox.GetComponent<CapsuleCollider2D>().offset, lcAttackScale);
+
+        //Get collision point from closests points to collision
         lcCollisionPosition = lcCollision.ClosestPoint(lcCollisionPosition);
 
         if (mbEnemyAttacker)
@@ -190,6 +206,7 @@ public class Attack : MonoBehaviour
             mcEnemyCollided = lcCollision.GetComponent<EnemyAI>();
         }
 
+        //Determine what this attack has collided with
         bool lbStruckFighter = ((mbPlayerAttacker && mcEnemyCollided) || (mbEnemyAttacker && mcPlayerCollided));
         bool lbStruckBorder = (lcCollision.name == "Walls" || lcCollision.name == "Ground" || lcCollision.name == "ExitWalls" 
             || lcCollision.name == "ExitGround" || lcCollision.name == "DestructibleObject" || lcCollision.name == "PassThroughPlatforms");
@@ -197,30 +214,32 @@ public class Attack : MonoBehaviour
 
         if (mbAttackOut)
         {
+
             if(lbStruckAttack)
             {
-                lcCollision.transform.parent.GetComponent<Attack>().AddForce(mcForceDirection, 200);
+                //TODO: Set to attack knock back
+                lcCollision.transform.parent.GetComponent<Attack>().AddForce(mcForceDirection, 10);
                 Debug.Log(this.name + " collided with attack " + lcCollision.transform.parent.name);
             }
             if (lbStruckFighter && !mcAttackAttributes.GetHitBoxIsTrigger())
             {
-                int lnAttackDamage = CalculateAttackDamage(mcAttackAttributes.GetAttackDamage());
 
                 //TODO: Add KnockBack
                 if (mbPlayerAttacker)
                 {
-                    mcEnemyCollided.Damage(lnAttackDamage, 2f, meAttackDirection, mafEffectAppliedTime);
+                    mcEnemyCollided.Damage(mnAttackDamage, 2f, meAttackDirection, mafEffectAppliedTime);
 
                     //TODO: Set freeze frames to scale with damage
                     //Freeze Frames
-                    if (lnAttackDamage > 50)
+                    if (mnAttackDamage > 30)
                     {
-                        mcPauseManager.SetFreeze(0.2f);
-                        mcCameraController.SetZoom(0.2f);
+                        mcCameraController.ScreenShake(0.5f, 0.5f, 60);
+                        //Lerp Zoom over stopped time
+                        mcCameraController.SetZoom(0.4f, 0.5f);
                     }
 
                     //TODO: Adjust attack movement 
-                    if (meAttackDirection == AttackDirection.eeDownwards)
+                    if (meAttackDirection == AttackDirection.eeDownwards && !mcAttackAttributes.GetDisjointed())
                     {
                         mcPlayerAttacker.ApplyAttackMovement();
                     }
@@ -228,12 +247,12 @@ public class Attack : MonoBehaviour
                 //Enemy Attack, Damage the player
                 else
                 {
-                    mcPlayerCollided.Damage(lnAttackDamage, 2f, meAttackDirection);
+                    mcPlayerCollided.Damage(mnAttackDamage, 2f, meAttackDirection);
                 }
 
                 //Trigger Damage pop up
                 GameObject lcPopUp = Instantiate(mcPopUpDamageTemplate, lcCollisionPosition, Quaternion.identity);
-                lcPopUp.GetComponent<TMP_Text>().text = lnAttackDamage.ToString();
+                lcPopUp.GetComponent<TMP_Text>().text = mnAttackDamage.ToString();
 
                 if (transform.position.x > lcCollision.transform.position.x)
                 {
@@ -241,7 +260,7 @@ public class Attack : MonoBehaviour
                 }
             }
 
-            if (mcAttackAttributes.GetDisjointed() && lbStruckBorder)
+            if (lbStruckBorder)
             {
                 //if sub Attack is generated at end of parent attacks life time
                 if (mcAttackAttributes.GetCreateSubAttackOnEnd())
@@ -252,6 +271,7 @@ public class Attack : MonoBehaviour
                     {
                         if (lbStruckBorder)
                         {
+                            bool lbCreateSubAttack = true;
 
                             lcCollision.transform.GetComponent<CompositeCollider2D>().geometryType = CompositeCollider2D.GeometryType.Polygons;
 
@@ -263,35 +283,84 @@ public class Attack : MonoBehaviour
                                     CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
 
                             bool lbUpOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y + 0.2f), new Vector2(0.3f, 0f),
-                                CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+                                CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null;
 
                             bool lbDownOpen = Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y - 0.2f), new Vector2(0.3f, 0f),
-                                CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null;
+                                CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null;
 
                             //Determine attack orientation
                             if (lbLeftOpen)
                             {
                                 lcSubAttackDirection = AttackDirection.eeLeftward;
+
+                                //Check to see if valid ground space exists for this attack to be generated
+                                if (Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y - 0.5f), new Vector2(0.5f, 0f),
+                                    CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null ||
+                                    Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y + 0.5f), new Vector2(0.5f, 0f),
+                                    CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null)
+                                {
+                                    Debug.Log("Inefficient Space for border attack!");
+                                    lbCreateSubAttack = false;
+                                }
                             }
                             else if (lbRightOpen)
                             {
                                 lcSubAttackDirection = AttackDirection.eeRightward;
+
+                                //Check to see if valid ground space exists for this attack to be generated
+                                if (Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y - 0.5f), new Vector2(0.5f, 0f),
+                                    CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null ||
+                                    Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x, lcCollisionPosition.y + 0.5f), new Vector2(0.5f, 0f),
+                                    CapsuleDirection2D.Horizontal, 0, mcGroundLayer | mcWallLayer) == null)
+                                {
+                                    Debug.Log("Inefficient Space for border attack!");
+                                    lbCreateSubAttack = false;
+                                }
                             }
                             else if (lbUpOpen)
                             {
                                 lcSubAttackDirection = AttackDirection.eeUpwards;
+
+                                //Check to see if valid ground space exists for this attack to be generated
+                                if(Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x - 0.5f, lcCollisionPosition.y), new Vector2(0f, 0.5f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null ||
+                                    Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x + 0.5f, lcCollisionPosition.y), new Vector2(0f, 0.5f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null)
+                                {
+                                    Debug.Log("Inefficient Space for border attack!");
+                                    lbCreateSubAttack = false;
+                                }
+
                             }
                             else if (lbDownOpen)
                             {
                                 lcSubAttackDirection = AttackDirection.eeDownwards;
+
+                                //Check to see if valid ground space exists for this attack to be generated
+                                if (Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x - 0.5f, lcCollisionPosition.y), new Vector2(0f, 0.5f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null ||
+                                    Physics2D.OverlapCapsule(new Vector2(lcCollisionPosition.x + 0.5f, lcCollisionPosition.y), new Vector2(0f, 0.5f),
+                                    CapsuleDirection2D.Vertical, 0, mcGroundLayer | mcWallLayer) == null)
+                                {
+                                    Debug.Log("Inefficient Space for border attack!");
+                                    lbCreateSubAttack = false;
+                                }
+                            }
+                            else
+                            {
+                                //No open space Do not create sub attack
+                                lbCreateSubAttack = false;
                             }
 
                             Debug.Log("Borderwards Direction: " + lcSubAttackDirection);
 
                             lcCollision.transform.GetComponent<CompositeCollider2D>().geometryType = CompositeCollider2D.GeometryType.Outlines;
 
-                            //Sub Attack direction derived from parent attack direction
-                            GenerateSubAttack(lcSubAttackDirection, lcCollisionPosition);
+                            if(lbCreateSubAttack)
+                            {
+                                //Sub Attack direction derived from border 
+                                GenerateSubAttack(lcSubAttackDirection, lcCollisionPosition);
+                            }
                         }
                     }
                     else
@@ -387,12 +456,19 @@ public class Attack : MonoBehaviour
         //Check for secondary effects
         for (int lnEffects = 0; lnEffects < mcAttackAttributes.GetEffectChances().Length; lnEffects++)
         {
-            if (mcAttackAttributes.GetEffectChances()[lnEffects] != 0)
+            //Check if Effect Chance triggers 
+            if (mcAttackAttributes.GetEffectChances()[lnEffects] != 0 
+                && UnityEngine.Random.Range(0, 101) <= mcAttackAttributes.GetEffectChances()[lnEffects])
             {
+                Debug.Log("Trigger Effect: " + (SuitEffect)lnEffects);
+
                 // Use effect chance to check if applied debuff set to true
                 mafEffectAppliedTime[lnEffects] = mcAttackAttributes.GetEffectDuration((SuitEffect)lnEffects);
             }
         }
+
+        //Calculate attack Damage
+        mnAttackDamage = (CalculateAttackDamage(mcAttackAttributes.GetAttackDamage()));
 
         //Set Direction
         meAttackDirection = mcAttackAttributes.GetDirection();
@@ -511,6 +587,14 @@ public class Attack : MonoBehaviour
 
                     PartMain.startColor = mcAttackAttributes.GetParticleTrailColor();
 
+                    var FireMain = mcFireFX.main;
+                    FireMain.startColor = mcAttackAttributes.GetParticleTrailColor();
+                    mcFireFX.transform.position = mcAttackOriginPosition;
+
+                    //Trigger fire effect
+                    mcFireFX.transform.SetParent(null);
+                    mcFireFX.Play();
+
                     mcSmokeFX.SetActive(true);
 
                     mcSmokeFX.GetComponent<ParticleSystem>().Play();
@@ -568,11 +652,11 @@ public class Attack : MonoBehaviour
             else if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeForceApplied
                 && mcRigidBody.bodyType != RigidbodyType2D.Dynamic)
             {
-                //TODO: Add mass and gravity to attack attributes
+                //Attack is affected by gravity
                 mcRigidBody.bodyType = RigidbodyType2D.Dynamic;
-                mcRigidBody.mass = 20;
-                mcRigidBody.gravityScale = 3;
-                mcRigidBody.AddForce(mcForceDirection * mcAttackAttributes.GetMovementForce() * 35, ForceMode2D.Impulse);
+                mcRigidBody.mass = mcAttackAttributes.GetMass();
+                mcRigidBody.gravityScale = mcAttackAttributes.GetGravityScale();
+                mcRigidBody.AddForce(mcForceDirection * mcAttackAttributes.GetMovementForce(), ForceMode2D.Impulse);
             }
             else if (mcAttackAttributes.GetAttackMovementType() == AttackMovementType.eeNoMovement &&
                 mcRigidBody.bodyType != RigidbodyType2D.Static)
@@ -594,6 +678,11 @@ public class Attack : MonoBehaviour
                 //TODO: Revolution Rate
                 transform.RotateAround(transform.parent.transform.position, Vector3.forward,
                     2 * ((meAttackDirection == AttackDirection.eeLeftward) ? 1 : -1));
+            }
+
+            if(mcAttackAttributes.GetForceAmplifier() != 0)
+            {
+                mcRigidBody.AddForce(mcForceDirection * (mcAttackAttributes.GetMovementForce() * mcAttackAttributes.GetForceAmplifier()), ForceMode2D.Impulse);
             }
         }
     }
@@ -707,13 +796,27 @@ public class Attack : MonoBehaviour
         }
         else if (peAttackDirection == AttackDirection.eeUpwards)
         {
+            //TODO: Change to not use attack direction
+            if (mcPlayerAttacker && mcPlayerAttacker.transform.localScale.x > 0)
+            {
+                Vector3 ls = lcAttack.transform.localScale;
+                ls.y *= -1f;
+                lcAttack.transform.localScale = ls;
+
+                lcAttackOrigin.x += mcSubAttackAttributes.GetHorizontalOffset();
+            }
+            else
+            {
+                lcAttackOrigin.x -= mcSubAttackAttributes.GetHorizontalOffset();
+            }
+
             lcAttackOrigin.y += mcSubAttackAttributes.GetUpDownAttackOffset();
-            lcAttackOrigin.x -= mcSubAttackAttributes.GetHorizontalOffset();
         }
         else if (peAttackDirection == AttackDirection.eeDownwards)
         {
             lcAttackOrigin.y -= mcSubAttackAttributes.GetUpDownAttackOffset();
             lcAttackOrigin.x += mcSubAttackAttributes.GetHorizontalOffset();
+
         }
 
         lcAttack.transform.position = lcAttackOrigin;

@@ -2,6 +2,7 @@ using Deck;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -13,13 +14,150 @@ public class PlayerAttackAttributesSet
     AttackAttributes[,,,,] macAttacksDataSet = new AttackAttributes[(int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1, 
         (int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1];
 
+    AttackAttributes[,,,,] macFileReadAttacksDataSet = new AttackAttributes[(int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1,
+    (int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1];
+
     //Sub attacks attribute sets
     AttackAttributes[,,] macSubAttacksDataSet = new AttackAttributes[(int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1, (int)CardSuit.eeCardSuitEnd + 1];
 
     // Start is called before the first frame update
     public PlayerAttackAttributesSet()
     {
-        GenerateBaseAttackAttributeSet();
+        //GenerateBaseAttackAttributeSet();
+
+        ReadPlayerAttackAttributeFile("Assets/SpreadSheets/PlayerAttackAttributesSheet.csv");
+
+        //PrintAttackAttributes();
+    }
+
+    void PrintAttackAttributes()
+    {
+        foreach(AttackAttributes lcAttackAttributes in macAttacksDataSet)
+        {
+            if(lcAttackAttributes != null)
+            {
+                Debug.Log(lcAttackAttributes.GetString());
+
+                if(lcAttackAttributes.GetSubAttack() != null)
+                {
+                    Debug.Log(lcAttackAttributes.GetSubAttack().GetString());
+                }
+            }
+        }
+    }
+
+    public void ReadCSV(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            Debug.Log("File " + filePath + " not found!");
+            return;
+        }
+
+        using (StreamReader sr = new StreamReader(filePath))
+        {
+            int lnLineIndex = 0;
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                //Do not read first line, It is used as column Definition
+                if(lnLineIndex != 0)
+                {
+                    string[] values = line.Split(','); // Split by comma
+                    try
+                    {
+                        //Try Parse Hex string to color
+                        Color lcParticleColor = Color.white;
+                        UnityEngine.ColorUtility.TryParseHtmlString(("#" + values[23]), out lcParticleColor);
+
+                        //Read Row into Attack Attributes Data Set
+                        AttackAttributes lcNewAttack = (new AttackAttributes(
+                            values[5], // Attack Name
+                            float.Parse(values[6]), // horizontal Offset
+                            float.Parse(values[7]), // Vertical Offset
+                            float.Parse(values[8]), // Side Attack Offset
+                            float.Parse(values[9]), // Up/Down Attack Offset
+                            float.Parse(values[10]), // Size Multiplier
+                            (int.Parse(values[11]) != 0), // Disjointed
+                            (int.Parse(values[12]) != 0), // revolve around
+                            float.Parse(values[13]), // Travel Distance
+                            float.Parse(values[14]), // Travel Time
+                            float.Parse(values[15]), //Force
+                            (AttackMovementType)int.Parse(values[16]), // Attack Movement Type
+                            (int.Parse(values[17]) != 0), // Has Animation Flip
+                            int.Parse(values[18]), // Player attack animation to play
+                            (int.Parse(values[19]) != 0), // Single animation lifetime
+                            values[20], // Attack Animation
+                            (CapsuleDirection2D)int.Parse(values[21]), // Capsule Direction
+                            (int.Parse(values[22]) != 0), // Partical Trail Enabled
+                            lcParticleColor, // Partical Trail Color
+                            float.Parse(values[24]), //Rotation rate
+                            (int.Parse(values[25]) != 0), // Ground origination
+                            (int.Parse(values[26]) != 0), // wall origination
+                            (int.Parse(values[27]) != 0), // has sub attack
+                            int.Parse(values[28]), // sub attack index
+                            (int.Parse(values[29]) != 0), // is tangible
+                            float.Parse(values[30]), // Adjusted Angle
+                            int.Parse(values[31]), // num attack instances
+                            float.Parse(values[32]), // Mass
+                            float.Parse(values[33]), // Gravity Scale
+                            float.Parse(values[34]), // Attack Delay
+                            (int.Parse(values[35]) != 0), //Create sub attack on end
+                            (AttackDirection)int.Parse(values[36]), //SubAttackDirection When right
+                            (AttackDirection)int.Parse(values[37]), //SubAttackDirection when left
+                            (AttackDirection)int.Parse(values[38]), //SubAttackDirection when up
+                            (AttackDirection)int.Parse(values[39]), //SubAttackDirection when down
+                            (int.Parse(values[40]) != 0), // Move towards target
+                            (int.Parse(values[41]) != 0), // animate attacker
+                            float.Parse(values[42]), // Knockback
+                            (int.Parse(values[43]) != 0), // Has Hitbox
+                            (int.Parse(values[44]) != 0), // Hitbox is trigger
+                            float.Parse(values[45]) // Force amplifier
+                            ));
+
+                        //Check if this attack is new attack or sub attack
+                        //Add Base Attack
+                        if(lcNewAttack.GetSubAttackIndex() == 0)
+                        {
+                            //Debug.Log("Add Attack: " + lcNewAttack.GetAttackName());
+
+                            //Process each Value into Attack Attributes data set
+                            macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])] = lcNewAttack;
+                        }
+                        //Add Sub Attack
+                        else if(lcNewAttack.GetSubAttackIndex() == 1 
+                            && macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])] != null)
+                        {
+                            //Debug.Log("Add Sub Attack: " + lcNewAttack.GetAttackName());
+                            macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])].AddSubAttack(lcNewAttack);
+                        }
+                        //Add sub attack sub attack
+                        else if(lcNewAttack.GetSubAttackIndex() == 2
+                            && macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])] != null
+                            && macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])].GetSubAttack() != null)
+                        {
+                            //Debug.Log("Add Sub-Sub Attack: " + lcNewAttack.GetAttackName());
+                            macAttacksDataSet[int.Parse(values[0]), int.Parse(values[1]), int.Parse(values[2]), int.Parse(values[3]), int.Parse(values[4])].GetSubAttack().AddSubAttack(lcNewAttack);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log("Formatting issue reading Player Attack Row: " + lnLineIndex);
+                    }
+                }
+
+                //Increment to match read rows
+                lnLineIndex++;
+            }
+        }
+    }
+
+    private void ReadPlayerAttackAttributeFile(string lcFileName)
+    {
+        ReadCSV(lcFileName);
+
+        Debug.Log("CSV data Loaded");
     }
 
     private void GenerateBaseAttackAttributeSet()
@@ -69,18 +207,18 @@ public class PlayerAttackAttributesSet
             CapsuleDirection2D.Horizontal, // Capsule Direction
             false, // Partical Trail Enabled
             Color.white, // Partical Trail Color
-            0,
-            false,
-            false,
-            true,
-            0,
-            false,
-            0,
-            1,
-            1,
-            1,
-            0f,
-            true
+            0, // Rotation Rate
+            false, // Ground Origination
+            false, // Wall origination
+            true, // has sub attack
+            0, // sub attack index
+            false, // tangible
+            0, // adjusted angle
+            1, // num instances
+            1, // Mass
+            1, // Gravityscale
+            0f, // Attack Delay
+            true // Create sub attack on end
             ));
 
         macAttacksDataSet[(int)CardSuit.eeSword, (int)CardSuit.eeSword, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd]
@@ -210,6 +348,39 @@ public class PlayerAttackAttributesSet
             1,
             0.18f));
 
+        //Great Flame Sword Attack
+        macAttacksDataSet[(int)CardSuit.eeSword, (int)CardSuit.eeAxe, (int)CardSuit.eeHeart, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd] = (new AttackAttributes(
+            "Great Flame Sword",
+            0f,
+            0.3f,
+            0.2f,
+            0.1f,
+            1.3f,
+            false,
+            false,
+            0,
+            0f,
+            0,
+            AttackMovementType.eeFollowPlayer,
+            false,
+            (int)PlayerAttackAnimation.eeArcSwipe,
+            true,
+            "GreatFlameSwordAttack",
+            CapsuleDirection2D.Horizontal,
+            false,
+            Color.white,
+            0,
+            false,
+            false,
+            false,
+            0,
+            false,
+            0,
+            1,
+            1,
+            1,
+            0.18f));
+
         //Fire Axe Attack
         macAttacksDataSet[(int)CardSuit.eeAxe, (int)CardSuit.eeHeart, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd] = (new AttackAttributes(
             "Flame Axe",
@@ -252,7 +423,68 @@ public class PlayerAttackAttributesSet
             "IceMaceAttack",
             CapsuleDirection2D.Horizontal,
             false,
-            new Color(0, 0.9f, 1, 1)));
+            new Color(0, 0.9f, 1, 1),
+            0, // Rotation Rate
+            false, // Ground origination
+            false, // wall origination
+            true, // has sub attack
+            0, // sub attack index
+            false, // is tangible
+            0,
+            1,
+            1,
+            1,
+            0, // Attack Delay
+            true, //Create sub attack on end
+            AttackDirection.eeBorderWards,
+            AttackDirection.eeBorderWards,
+            AttackDirection.eeBorderWards,
+            AttackDirection.eeBorderWards
+            ));
+
+        //Ice Spike Ground attack
+        macAttacksDataSet[(int)CardSuit.eeAxe, (int)CardSuit.eeDiamond, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd].AddSubAttack(
+            new AttackAttributes("Ice Spikes",
+            1f, // horizontal Offset
+            0f, // Vertical Offset
+            0.5f, // Side Attack Offset
+            0.5f, // Up/Down Attack Offset
+            2f, // Size Multiplier
+            true, // Disjointed
+            false, // revolve around
+            0, // Travel Distance
+            10f, // Life Time
+            0, // Force
+            AttackMovementType.eeNoMovement,
+            false, // Has Animation Flip
+            (int)PlayerAttackAnimation.eeBasic, // Player attack animation to play
+            true, // Single animation lifetime
+            "IceSpikeAttack", // Attack Animation
+            CapsuleDirection2D.Horizontal, // Capsule Direction
+            false, // Partical Trail Enabled
+            Color.green, // Partical Trail Color
+            0, //Rotation rate
+            false, // Ground origination
+            false, // wall origination
+            false, // has sub attack
+            0, // sub attack index
+            false, // is tangible
+            0,
+            1,
+            1,
+            1,
+            0, // Attack Delay
+            false, //Create sub attack on end
+            AttackDirection.eeRightward,
+            AttackDirection.eeLeftward,
+            AttackDirection.eeUpwards,
+            AttackDirection.eeDownwards,
+            false,
+            false,
+            0,
+            true,
+            false)
+            );
 
         //Stone Axe Attack
         macAttacksDataSet[(int)CardSuit.eeAxe, (int)CardSuit.eeSpade, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd] = (new AttackAttributes(
@@ -297,6 +529,51 @@ public class PlayerAttackAttributesSet
             CapsuleDirection2D.Horizontal,
             false,
             Color.white));
+
+        //Boomerang Attack
+        macAttacksDataSet[(int)CardSuit.eeSword, (int)CardSuit.eeArcher, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd] = (new AttackAttributes(
+            "Boomerang",
+            0,
+            -0.07f,
+            0.5f,
+            0.5f,
+            2f,
+            true,
+            false,
+            8,
+            5f,
+            1.5f,
+            AttackMovementType.eeForceApplied,
+            false,
+            (int)PlayerAttackAnimation.eeBasic,
+            false,
+            "BoomerangAttack",
+            CapsuleDirection2D.Horizontal,
+            true,
+            Color.white,
+            0,
+            false,
+            false,
+            false,
+            0,
+            false,
+            0,
+            1,
+            3,
+            0,
+            0.1f,
+            false,
+            AttackDirection.eeRightward,
+            AttackDirection.eeLeftward,
+            AttackDirection.eeUpwards,
+            AttackDirection.eeDownwards,
+            false,
+            true,
+            0,
+            true,
+            false,
+            -0.28f
+            ));
 
         //Heart attack
         macAttacksDataSet[(int)CardSuit.eeHeart, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd] = (new AttackAttributes(
@@ -431,7 +708,7 @@ public class PlayerAttackAttributesSet
             false, // revolve around
             0, // Travel Distance
             0f, // Travel Time
-            7, // Force
+            35, // Force
             AttackMovementType.eeForceApplied,
             false, // Has Animation Flip
             (int)PlayerAttackAnimation.eeBasic, // Player attack animation to play
@@ -446,10 +723,10 @@ public class PlayerAttackAttributesSet
             false, // has sub attack
             0, // sub attack index
             true, // is tangible
-            0,
-            1,
-            1,
-            1,
+            0, // adjusted angle
+            1, // num instances
+            3, // Mass
+            3, // Gravityscale
             0,
             false,
             AttackDirection.eeRightward,
@@ -518,10 +795,10 @@ public class PlayerAttackAttributesSet
             0, // Vertical Offset
             0.5f, // Side Attack Offset
             0.5f, // Up/Down Attack Offset
-            1.5f, // Size Multiplier
+            3f, // Size Multiplier
             true, // Disjointed
             false, // revolve around
-            8, // Travel Distance
+            10, // Travel Distance
             0.5f, // Travel Time
             0, //Force
             AttackMovementType.eeFixedDistance,
@@ -531,7 +808,19 @@ public class PlayerAttackAttributesSet
             "ThreeFireAttack", // Attack Animation
             CapsuleDirection2D.Vertical, // Capsule Direction
             true, // Partical Trail Enabled
-            new Color(1, 0.5f, 0, 1) // Partical Trail Color
+            new Color(1, 0.5f, 0, 1), // Partical Trail Color
+            0, // Rotation Rate
+            false, // Ground Origination
+            false, // Wall origination
+            false, // has sub attack
+            0, // sub attack index
+            false, // tangible
+            0, // adjusted angle
+            1, // num instances
+            1, // Mass
+            1, // Gravityscale
+            0.15f, // Attack Delay
+            false // Create sub attack on end
             ));
 
         //Double Arrow attack
@@ -609,7 +898,7 @@ public class PlayerAttackAttributesSet
             false, // revolve around
             0, // Travel Distance
             0f, // Travel Time
-            5, //Force
+            20, //Force
             AttackMovementType.eeForceApplied,
             false, // Has Animation Flip
             (int)PlayerAttackAnimation.eeBasic, // Player attack animation to play
@@ -626,8 +915,8 @@ public class PlayerAttackAttributesSet
             false, // is tangible
             0,
             1,
-            1,
-            1,
+            3,
+            3,
             0,
             true,
             AttackDirection.eeBorderWards,
@@ -877,8 +1166,17 @@ public class PlayerAttackAttributesSet
 
             return macAttacksDataSet[lanCardIndex[0], lanCardIndex[1], lanCardIndex[2], lanCardIndex[3], lanCardIndex[4]];
         }
+        //TODO: Remove once Attack data set filled
+        else
+        {
+            CalculateEffectPercentages(pacAttackCards, macAttacksDataSet[(int)CardSuit.eeSword, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd, 
+                (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd]);
 
-        return macAttacksDataSet[0,7,7,7,7];
+            return macAttacksDataSet[(int)CardSuit.eeSword, (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd,
+                (int)CardSuit.eeCardSuitEnd, (int)CardSuit.eeCardSuitEnd];
+        }
+
+        return macAttacksDataSet[0, 7, 7, 7, 7];
     }
 
     // Returns the sub attack attributes aligned with the suits provided
